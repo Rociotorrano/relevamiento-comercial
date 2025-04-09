@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:relevamientocomercial/servicios/guardar.dart';
 
@@ -48,6 +51,7 @@ class _PadronPageState extends State<PadronPage> {
 
   List<Map<String, dynamic>> localidades = [];
   List<Map<String, dynamic>> calles = [];
+  final List<File> _foto = [];
 
   final TextEditingController _padronController = TextEditingController();
   final TextEditingController _cuitController = TextEditingController();
@@ -111,9 +115,12 @@ class _PadronPageState extends State<PadronPage> {
 
     validaciones['localidad'] = selectedLocalidad != null;
     validaciones['calle'] = selectedCalle != null;
-    validaciones['rubros habilitados'] =
+    validaciones['estadoAbiertoocerrado'] =
+        selectedestadoAbiertoocerrado != null;
+
+    validaciones['rubroshabilitados'] =
         _rubroshabilotadosController.text.isNotEmpty;
-    validaciones['rubros expltados'] =
+    validaciones['rubrosexpltados'] =
         _rubrosexplotadosController.text.isNotEmpty;
     validaciones['publicidad'] = _publicidadController.text.isNotEmpty;
     validaciones['observaciones'] = _observacionesController.text.isNotEmpty;
@@ -144,6 +151,131 @@ class _PadronPageState extends State<PadronPage> {
     );
   }
 
+  Future<void> _sacarFoto() async {
+    try {
+      final ImagePicker _picker = ImagePicker();
+      final XFile? image = await _picker.pickImage(source: ImageSource.camera);
+
+      if (image != null) {
+        setState(() {
+          _foto.add(File(image.path)); // Agregar foto a la lista
+        });
+      }
+    } catch (e) {
+      _mostrarMensajeGuardado('Error al capturar la foto: $e');
+    }
+  }
+
+  Widget _buildFotos() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        const Text(
+          'FOTOS',
+          style: TextStyle(
+            fontSize: 19,
+            fontWeight: FontWeight.bold,
+            color: Colors.blue,
+          ),
+        ),
+        const SizedBox(height: 10),
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 3,
+            mainAxisSpacing: 10,
+            crossAxisSpacing: 10,
+            childAspectRatio: 1,
+          ),
+          itemCount: _foto.length,
+          itemBuilder: (context, index) {
+            return GestureDetector(
+              onTap: () {
+                showDialog(
+                  context: context,
+                  builder: (_) => Dialog(
+                    backgroundColor: Colors.black,
+                    child: Stack(
+                      alignment: Alignment.topRight,
+                      children: [
+                        Center(
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
+                            child: Image.file(
+                              _foto[index],
+                              fit: BoxFit.contain,
+                              width: double.infinity,
+                              height: double.infinity,
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          top: 10,
+                          right: 10,
+                          child: IconButton(
+                            icon: const Icon(Icons.close,
+                                color: Colors.white, size: 30),
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+              child: Stack(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.file(
+                      _foto[index],
+                      fit: BoxFit.cover,
+                      width: double.infinity,
+                      height: double.infinity,
+                    ),
+                  ),
+                  Positioned(
+                    top: 0,
+                    right: 0,
+                    child: GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _foto.removeAt(index);
+                        });
+                      },
+                      child: Container(
+                        width: 20,
+                        height: 20,
+                        decoration: const BoxDecoration(
+                          color: Colors.red,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.close,
+                          size: 15,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+        const SizedBox(height: 10),
+        IconButton(
+          onPressed: _sacarFoto,
+          icon: const Icon(Icons.camera_alt, color: Colors.blue),
+          iconSize: 30,
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -153,66 +285,63 @@ class _PadronPageState extends State<PadronPage> {
         automaticallyImplyLeading: false,
         backgroundColor: const Color(0xFF40A5DD),
         centerTitle: true,
-        toolbarHeight: 90.0,
+        toolbarHeight: 120.0,
         elevation: 0,
         title: const Padding(
           padding: EdgeInsets.only(left: 20.0),
-          // child: Text(
-          //   'DATOS',
-          //   style: TextStyle(
-          //     fontSize: 35,
-          //     fontWeight: FontWeight.bold,
-          //     color: Colors.white,
-          //   ),
-          // ),
+          child: Text(
+            'Relevamiento Comercial',
+            style: TextStyle(
+              fontSize: 30,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
         ),
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16.0),
-        children: [
-          const SizedBox(height: 20),
-          Row(
-            children: [
-              Expanded(
-                child: _buildTexto('Nro. Padrón:', _padronController,
-                    isNumeric: true),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _buildTexto('Cuit:', _cuitController),
-              ),
-            ],
-          ),
-          _buildTexto('Nombre de Fantasía:', _nombrefantasiaController),
-          const Divider(color: Color(0xFF40A5DD), thickness: 2),
-          _buildDropdownLocalidad(),
-          const Divider(color: Color(0xFF40A5DD), thickness: 2),
-          _buildDropdownCalle(),
-          const Divider(color: Color(0xFF40A5DD), thickness: 2),
-          Row(
-            children: [
-              Expanded(
-                child:
-                    _buildTexto('Número:', _padronController, isNumeric: true),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _buildTexto('Nro. Local:', _cuitController),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          const SizedBox(height: 16),
-          Column(
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildTexto('Nro. Padrón:', _padronController,
+                        isNumeric: true),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _buildTexto('Cuit:', _cuitController),
+                  ),
+                ],
+              ),
+              _buildTexto('Nombre de Fantasía:', _nombrefantasiaController),
+              const Divider(color: Color(0xFF40A5DD), thickness: 2),
+              _buildDropdownLocalidad(),
+              const Divider(color: Color(0xFF40A5DD), thickness: 2),
+              _buildDropdownCalle(),
+              const Divider(color: Color(0xFF40A5DD), thickness: 2),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildTexto('Número:', _numeroController,
+                        isNumeric: true),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _buildTexto('Nro. Local:', _numeroLocalController),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
               Row(
                 children: [
                   Expanded(
                     child: RadioListTile<String>(
-                      title: const Text(
-                        'Abierto',
-                      ),
+                      title: const Text('Abierto'),
                       value: 'abierto',
                       groupValue: selectedestadoAbiertoocerrado,
                       onChanged: (value) {
@@ -225,9 +354,7 @@ class _PadronPageState extends State<PadronPage> {
                   ),
                   Expanded(
                     child: RadioListTile<String>(
-                      title: const Text(
-                        'Temporalmente cerrado',
-                      ),
+                      title: const Text('Temporalmente cerrado'),
                       value: 'Temporalmente cerrado',
                       groupValue: selectedestadoAbiertoocerrado,
                       onChanged: (value) {
@@ -242,9 +369,7 @@ class _PadronPageState extends State<PadronPage> {
               ),
               const SizedBox(height: 25),
               CheckboxListTile(
-                title: const Text(
-                  'Certificado de habilitación',
-                ),
+                title: const Text('Certificado de habilitación'),
                 value: _certificadoHabilitacion,
                 onChanged: (bool? value) {
                   setState(() {
@@ -255,9 +380,7 @@ class _PadronPageState extends State<PadronPage> {
                 contentPadding: EdgeInsets.zero,
               ),
               CheckboxListTile(
-                title: const Text(
-                  'Comprobantes de pago de Seg e Higiene',
-                ),
+                title: const Text('Comprobantes de pago de Seg e Higiene'),
                 value: _comprobantesSegHigiene,
                 onChanged: (bool? value) {
                   setState(() {
@@ -268,9 +391,7 @@ class _PadronPageState extends State<PadronPage> {
                 contentPadding: EdgeInsets.zero,
               ),
               CheckboxListTile(
-                title: const Text(
-                  'Servicio de delivery',
-                ),
+                title: const Text('Servicio de delivery'),
                 value: _servicioDelivery,
                 onChanged: (bool? value) {
                   setState(() {
@@ -280,15 +401,33 @@ class _PadronPageState extends State<PadronPage> {
                 controlAffinity: ListTileControlAffinity.leading,
                 contentPadding: EdgeInsets.zero,
               ),
-              _buildTexto('Rubros Habilitados:', _observacionesController),
-              _buildTexto('Rubros Explotados:', _observacionesController),
+              _buildTexto('Rubros Habilitados:', _rubroshabilotadosController),
+              _buildTexto('Rubros Explotados:', _rubrosexplotadosController),
               _buildTexto(
                   'Elementos de publicidad o de ocupación en la vía pública:',
-                  _observacionesController),
+                  _publicidadController),
               _buildTexto('Observaciones:', _observacionesController),
+              const SizedBox(height: 30),
+              _buildFotos(),
+              const SizedBox(height: 20),
+              // ElevatedButton(
+              //   // onPressed: _guardarTodo,
+              //   style: ElevatedButton.styleFrom(
+              //     backgroundColor: const Color(0xFF40A5DD),
+              //     padding: const EdgeInsets.symmetric(vertical: 10.0),
+              //   ),
+              //   child: const Text(
+              //     'GUARDAR',
+              //     style: TextStyle(
+              //       fontSize: 16,
+              //       fontWeight: FontWeight.bold,
+              //       color: Colors.white,
+              //     ),
+              //   ),
+              // ),
             ],
           ),
-        ],
+        ),
       ),
     );
   }

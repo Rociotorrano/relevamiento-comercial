@@ -217,3 +217,95 @@ Future<List<Map<String, dynamic>>> traerCalle(fklocalidad) async {
     throw Exception('Error al obtener calles: $e');
   }
 }
+
+//! Guarda todo
+
+//  Future<void> _guardarTodo() async {
+//   if (!_validarFormulario()) return;
+//   final loginData = Provider.of<LoginData>(context, listen: false);
+//   final token = loginData.token;
+//   print("ESTE ES EL TOKEN $token");
+//   final url = Uri.parse(
+//       'https://backend.sim.lacosta.gob.ar/juzgadodefaltas/actas/guardarActa');
+//   try {
+//     var response = await http.post(
+//       url,
+//       headers: <String, String>{
+//         'Content-Type': 'application/json; charset=UTF-8',
+//         'Authorization': 'Bearer $token',
+//       },
+//       body: jsonEncode({
+//         'fktipoacta': int.parse(fktipoacta),
+//         'fktipoinfractor': int.parse(fktipoinfractor),
+//         'cuenta': int.parse(_padronController.text),
+//         'dni': int.parse(_dniController.text),
+//         'nombre': _nombreController.text,
+//         'apellido': _apellidoController.text,
+//         'fklocalidad': int.parse(selectedLocalidad!),
+//         'fkcalle': int.parse(selectedCalle!),
+//         'pkacta': null,
+//         'leyes': null,
+//         'observaciones': _observacionesController.text,
+//         'fktipovehiculo': null,
+//         'marca': null,
+//         'modelo': null,
+//         'rubro': _rubroController.text,
+//         'nrocalle': int.parse(_numeroController.text),
+//         'nrolocal': int.parse(_numeroLocalController.text),
+//         'digito': null,
+//         'dominio': null
+//       }),
+//     );
+//     print('ESTADO: ${response.statusCode}');
+//     print('RESPUESTA: ${response.body}');
+
+//     if (response.statusCode == 200) {
+//       _mostrarMensajeGuardado('Datos guardados con éxito');
+//       if (_foto.isNotEmpty) {
+//         print('guardando fotos');
+//         _foto.forEach((foto) {
+//           guardarFotos(1, foto, token);
+//         });
+//       }
+//     }
+
+//     await Future.delayed(const Duration(seconds: 2));
+//     Navigator.pushReplacement(
+//       context,
+//       MaterialPageRoute(builder: (context) => PadronApp()),
+//     );
+//   } catch (e) {
+//     _mostrarMensajeGuardado('Error al guardar los datos: $e');
+//     print(e);
+//   }
+// }
+
+
+//!FOTOS
+// Future<void> guardarFotos(fkacta, File archivo, String token) async {
+//   print('GUARDANDO FOTOS');
+//   var url = Uri.parse(
+//       'https://backend.sim.lacosta.gob.ar/juzgadodefaltas/actas/guardarDocumentacion');
+
+//   try {
+//     var request = http.MultipartRequest('POST', url)
+//       ..headers.addAll({
+//         'Content-Type': 'multipart/form-data',
+//         'Authorization': 'Bearer $token',
+//       })
+//       ..fields['fkacta'] = fkacta.toString()
+//       ..files.add(await http.MultipartFile.fromPath('archivo', archivo.path));
+
+//     var response = await request.send();
+
+//     if (response.statusCode == 200) {
+//       print('Datos DE FOTO guardados exitosamente.');
+//     } else {
+//       print('La respuesta es incorrecta.');
+//       throw Exception('Error al guardar la imagen');
+//     }
+//   } catch (error) {
+//     print('Error al intentar guardar datos: $error');
+//     throw Exception('Ocurrió un error, intente nuevamente.');
+//   }
+// }
