@@ -139,15 +139,6 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
                 const SizedBox(height: 40.0),
-                if (!keyboardIsOpen)
-                  Text(
-                    'ACTAS',
-                    style: size.width >= 150
-                        ? texto.headlineLarge!.copyWith(
-                            color: Colors.white, fontWeight: FontWeight.bold)
-                        : texto.headlineSmall!.copyWith(
-                            color: Colors.white, fontWeight: FontWeight.bold),
-                  ),
               ],
             ),
           ),

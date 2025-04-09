@@ -52,7 +52,7 @@ class _PadronPageState extends State<PadronPage> {
   final TextEditingController _numeroLocalController = TextEditingController();
 
   Map<String, bool> _camposValidos = {
-    'padron': true,
+    'Nro. Padrón': true,
     'cuit': true,
     'nombre fantasia': true,
     'numero': true,
@@ -86,7 +86,7 @@ class _PadronPageState extends State<PadronPage> {
     Map<String, bool> validaciones = Map.from(_camposValidos);
 
     // Validar cada campo
-    validaciones['padron'] = _padronController.text.isNotEmpty;
+    validaciones['Nro. Padrón'] = _padronController.text.isNotEmpty;
     validaciones['cuit'] = _cuitController.text.isNotEmpty;
     validaciones['nombre de fantasia'] =
         _nombrefantasiaController.text.isNotEmpty;
@@ -129,28 +129,37 @@ class _PadronPageState extends State<PadronPage> {
         automaticallyImplyLeading: false,
         backgroundColor: const Color(0xFF40A5DD),
         centerTitle: true,
-        toolbarHeight: 135.0,
+        toolbarHeight: 90.0,
         elevation: 0,
         title: const Padding(
           padding: EdgeInsets.only(left: 20.0),
-          child: Text(
-            'DATOS',
-            style: TextStyle(
-              fontSize: 35,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
+          // child: Text(
+          //   'DATOS',
+          //   style: TextStyle(
+          //     fontSize: 35,
+          //     fontWeight: FontWeight.bold,
+          //     color: Colors.white,
+          //   ),
+          // ),
         ),
       ),
       body: ListView(
         padding: const EdgeInsets.all(16.0),
         children: [
           const SizedBox(height: 20),
-          _buildSectionTitulo('DATOS'),
-          _buildTexto('Padrón:', _padronController, isNumeric: true),
-          _buildTexto('Cuit:', _cuitController),
-          _buildTexto('Nombre de Fantasía:', _cuitController),
+          Row(
+            children: [
+              Expanded(
+                child: _buildTexto('Nro. Padrón:', _padronController,
+                    isNumeric: true),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: _buildTexto('Cuit:', _cuitController),
+              ),
+            ],
+          ),
+          _buildTexto('Nombre de Fantasía:', _nombrefantasiaController),
           const Divider(color: Color(0xFF40A5DD), thickness: 2),
           _buildDropdownLocalidad(),
           const Divider(color: Color(0xFF40A5DD), thickness: 2),
@@ -268,28 +277,14 @@ class _PadronPageState extends State<PadronPage> {
     );
   }
 
-  Widget _buildSectionTitulo(String title) {
-    return Text(
-      title,
-      style: const TextStyle(
-        fontSize: 20,
-        fontWeight: FontWeight.bold,
-        color: Colors.lightBlue,
-      ),
-      textAlign: TextAlign.center,
-    );
-  }
-
   Widget _buildTexto(String label, TextEditingController controller,
       {bool isNumeric = false}) {
-    //validaciones
     String campoKey = '';
-    if (controller == _padronController) campoKey = 'padron';
+    if (controller == _padronController) campoKey = 'Nro. Padrón';
     if (controller == _cuitController) campoKey = 'cuit';
     if (controller == _numeroController) campoKey = 'numero';
     if (controller == _numeroLocalController) campoKey = 'numeroLocal';
 
-    // Verificar si el campo es válido
     bool esValido = _camposValidos[campoKey] ?? true;
 
     return Padding(
@@ -312,16 +307,24 @@ class _PadronPageState extends State<PadronPage> {
             decoration: InputDecoration(
               errorText: !esValido ? "*requerido" : null,
               errorStyle: const TextStyle(color: Colors.red),
+              enabledBorder: OutlineInputBorder(
+                borderSide: BorderSide(
+                  color: esValido
+                      ? Color.fromARGB(255, 128, 122, 122)
+                      : Colors.red,
+                  width: 1.5,
+                ),
+              ),
               focusedBorder: OutlineInputBorder(
                 borderSide: BorderSide(
-                  color: !esValido ? Colors.red : Color(0xFF40A5DD),
+                  color: esValido ? const Color(0xFF40A5DD) : Colors.red,
+                  width: 1.5,
                 ),
               ),
               contentPadding:
                   const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
             ),
             onChanged: (value) {
-              // Limpiar error cuando el usuario comienza a escribir
               if (!esValido) {
                 setState(() {
                   _camposValidos[campoKey] = true;
