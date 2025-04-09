@@ -55,6 +55,7 @@ class _PadronPageState extends State<PadronPage> {
 
   final TextEditingController _padronController = TextEditingController();
   final TextEditingController _cuitController = TextEditingController();
+  final TextEditingController _titularController = TextEditingController();
   final TextEditingController _nombrefantasiaController =
       TextEditingController();
   final TextEditingController _numeroController = TextEditingController();
@@ -70,7 +71,8 @@ class _PadronPageState extends State<PadronPage> {
   Map<String, bool> _camposValidos = {
     'Nro. Padrón': true,
     'cuit': true,
-    'nombre fantasia': true,
+    'titular': true,
+    'nombrefantasia': true,
     'numero': true,
     'numeroLocal': true,
     'localidad': true,
@@ -108,8 +110,8 @@ class _PadronPageState extends State<PadronPage> {
     // Validar cada campo
     validaciones['Nro. Padrón'] = _padronController.text.isNotEmpty;
     validaciones['cuit'] = _cuitController.text.isNotEmpty;
-    validaciones['nombre de fantasia'] =
-        _nombrefantasiaController.text.isNotEmpty;
+    validaciones['titular'] = _titularController.text.isNotEmpty;
+    validaciones['nombrefantasia'] = _nombrefantasiaController.text.isNotEmpty;
     validaciones['numero'] = _numeroController.text.isNotEmpty;
     validaciones['numeroLocal'] = _numeroLocalController.text.isNotEmpty;
 
@@ -149,6 +151,36 @@ class _PadronPageState extends State<PadronPage> {
         duration: const Duration(seconds: 2),
       ),
     );
+  }
+
+  Future<void> _confirmarSalida() async {
+    bool salir = await showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              backgroundColor: Colors.white,
+              title: const Text('Cerrar sesión'),
+              content:
+                  const Text('¿Estás seguro de que querés cerrar la sesión?'),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: const Text('Cancelar'),
+                ),
+                TextButton(
+                  onPressed: () =>
+                      exit(0), // o Navigator.pushReplacement a login
+                  child: const Text('Salir'),
+                ),
+              ],
+            );
+          },
+        ) ??
+        false;
+
+    if (salir) {
+      exit(0); // O redireccionar al login si tu app maneja usuarios
+    }
   }
 
   Future<void> _sacarFoto() async {
@@ -289,15 +321,37 @@ class _PadronPageState extends State<PadronPage> {
         elevation: 0,
         title: const Padding(
           padding: EdgeInsets.only(left: 20.0),
-          child: Text(
-            'Relevamiento Comercial',
-            style: TextStyle(
-              fontSize: 30,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Relevamiento',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              Text(
+                'Comercial',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ],
           ),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: _confirmarSalida,
+            tooltip: 'Cerrar sesión',
+            color: Colors.white,
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -314,10 +368,12 @@ class _PadronPageState extends State<PadronPage> {
                   ),
                   const SizedBox(width: 16),
                   Expanded(
-                    child: _buildTexto('Cuit:', _cuitController),
+                    child:
+                        _buildTexto('Cuit:', _cuitController, isNumeric: true),
                   ),
                 ],
               ),
+              _buildTexto('Titular:', _nombrefantasiaController),
               _buildTexto('Nombre de Fantasía:', _nombrefantasiaController),
               const Divider(color: Color(0xFF40A5DD), thickness: 2),
               _buildDropdownLocalidad(),
@@ -332,7 +388,8 @@ class _PadronPageState extends State<PadronPage> {
                   ),
                   const SizedBox(width: 16),
                   Expanded(
-                    child: _buildTexto('Nro. Local:', _numeroLocalController),
+                    child: _buildTexto('Nro. Local:', _numeroLocalController,
+                        isNumeric: true),
                   ),
                 ],
               ),
@@ -401,12 +458,16 @@ class _PadronPageState extends State<PadronPage> {
                 controlAffinity: ListTileControlAffinity.leading,
                 contentPadding: EdgeInsets.zero,
               ),
-              _buildTexto('Rubros Habilitados:', _rubroshabilotadosController),
-              _buildTexto('Rubros Explotados:', _rubrosexplotadosController),
+              _buildTexto('Rubros Habilitados:', _rubroshabilotadosController,
+                  maxLines: 6),
+              _buildTexto('Rubros Explotados:', _rubrosexplotadosController,
+                  maxLines: 6),
               _buildTexto(
                   'Elementos de publicidad o de ocupación en la vía pública:',
-                  _publicidadController),
-              _buildTexto('Observaciones:', _observacionesController),
+                  _publicidadController,
+                  maxLines: 6),
+              _buildTexto('Observaciones:', _observacionesController,
+                  maxLines: 6),
               const SizedBox(height: 30),
               _buildFotos(),
               const SizedBox(height: 20),
@@ -537,10 +598,12 @@ class _PadronPageState extends State<PadronPage> {
   }
 
   Widget _buildTexto(String label, TextEditingController controller,
-      {bool isNumeric = false}) {
+      {bool isNumeric = false, int maxLines = 1}) {
     String campoKey = '';
     if (controller == _padronController) campoKey = 'Nro. Padrón';
     if (controller == _cuitController) campoKey = 'cuit';
+    if (controller == _numeroController) campoKey = 'titular';
+    if (controller == _numeroController) campoKey = 'nombrefantasia';
     if (controller == _numeroController) campoKey = 'numero';
     if (controller == _numeroLocalController) campoKey = 'numeroLocal';
     if (controller == _rubroshabilotadosController)
@@ -568,7 +631,9 @@ class _PadronPageState extends State<PadronPage> {
           const SizedBox(height: 5),
           TextField(
             controller: controller,
-            keyboardType: isNumeric ? TextInputType.number : TextInputType.text,
+            keyboardType:
+                isNumeric ? TextInputType.number : TextInputType.multiline,
+            maxLines: maxLines,
             decoration: InputDecoration(
               errorText: !esValido ? "*requerido" : null,
               errorStyle: const TextStyle(color: Colors.red),
@@ -587,7 +652,7 @@ class _PadronPageState extends State<PadronPage> {
                 ),
               ),
               contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
             ),
             onChanged: (value) {
               if (!esValido) {
