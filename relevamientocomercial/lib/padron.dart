@@ -41,6 +41,11 @@ class _PadronPageState extends State<PadronPage> {
 
   String? selectedLocalidad;
   String? selectedCalle;
+  String? selectedestadoAbiertoocerrado;
+  bool _certificadoHabilitacion = false;
+  bool _comprobantesSegHigiene = false;
+  bool _servicioDelivery = false;
+
   List<Map<String, dynamic>> localidades = [];
   List<Map<String, dynamic>> calles = [];
 
@@ -50,6 +55,13 @@ class _PadronPageState extends State<PadronPage> {
       TextEditingController();
   final TextEditingController _numeroController = TextEditingController();
   final TextEditingController _numeroLocalController = TextEditingController();
+  final TextEditingController _rubroshabilotadosController =
+      TextEditingController();
+  final TextEditingController _rubrosexplotadosController =
+      TextEditingController();
+  final TextEditingController _publicidadController = TextEditingController();
+  final TextEditingController _observacionesController =
+      TextEditingController();
 
   Map<String, bool> _camposValidos = {
     'Nro. Padrón': true,
@@ -59,6 +71,10 @@ class _PadronPageState extends State<PadronPage> {
     'numeroLocal': true,
     'localidad': true,
     'calle': true,
+    'rubroshabilitados': true,
+    'rubrosexplotados': true,
+    'publicidad': true,
+    'observaciones': true,
   };
 
   @override
@@ -95,6 +111,14 @@ class _PadronPageState extends State<PadronPage> {
 
     validaciones['localidad'] = selectedLocalidad != null;
     validaciones['calle'] = selectedCalle != null;
+    validaciones['rubros habilitados'] =
+        _rubroshabilotadosController.text.isNotEmpty;
+    validaciones['rubros expltados'] =
+        _rubrosexplotadosController.text.isNotEmpty;
+    validaciones['publicidad'] = _publicidadController.text.isNotEmpty;
+    validaciones['observaciones'] = _observacionesController.text.isNotEmpty;
+    validaciones['estadoAbiertoocerrado'] =
+        selectedestadoAbiertoocerrado != null;
 
     // Verificar si algún campo no es válido
     if (validaciones.containsValue(false)) {
@@ -165,9 +189,105 @@ class _PadronPageState extends State<PadronPage> {
           const Divider(color: Color(0xFF40A5DD), thickness: 2),
           _buildDropdownCalle(),
           const Divider(color: Color(0xFF40A5DD), thickness: 2),
-          _buildTexto('N°:', _numeroController, isNumeric: true),
-          _buildTexto('N° Local:', _numeroLocalController, isNumeric: true),
-          const SizedBox(height: 20),
+          Row(
+            children: [
+              Expanded(
+                child:
+                    _buildTexto('Número:', _padronController, isNumeric: true),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: _buildTexto('Nro. Local:', _cuitController),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          const SizedBox(height: 16),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: RadioListTile<String>(
+                      title: const Text(
+                        'Abierto',
+                      ),
+                      value: 'abierto',
+                      groupValue: selectedestadoAbiertoocerrado,
+                      onChanged: (value) {
+                        setState(() {
+                          selectedestadoAbiertoocerrado = value;
+                        });
+                      },
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+                  Expanded(
+                    child: RadioListTile<String>(
+                      title: const Text(
+                        'Temporalmente cerrado',
+                      ),
+                      value: 'Temporalmente cerrado',
+                      groupValue: selectedestadoAbiertoocerrado,
+                      onChanged: (value) {
+                        setState(() {
+                          selectedestadoAbiertoocerrado = value;
+                        });
+                      },
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 25),
+              CheckboxListTile(
+                title: const Text(
+                  'Certificado de habilitación',
+                ),
+                value: _certificadoHabilitacion,
+                onChanged: (bool? value) {
+                  setState(() {
+                    _certificadoHabilitacion = value ?? false;
+                  });
+                },
+                controlAffinity: ListTileControlAffinity.leading,
+                contentPadding: EdgeInsets.zero,
+              ),
+              CheckboxListTile(
+                title: const Text(
+                  'Comprobantes de pago de Seg e Higiene',
+                ),
+                value: _comprobantesSegHigiene,
+                onChanged: (bool? value) {
+                  setState(() {
+                    _comprobantesSegHigiene = value ?? false;
+                  });
+                },
+                controlAffinity: ListTileControlAffinity.leading,
+                contentPadding: EdgeInsets.zero,
+              ),
+              CheckboxListTile(
+                title: const Text(
+                  'Servicio de delivery',
+                ),
+                value: _servicioDelivery,
+                onChanged: (bool? value) {
+                  setState(() {
+                    _servicioDelivery = value ?? false;
+                  });
+                },
+                controlAffinity: ListTileControlAffinity.leading,
+                contentPadding: EdgeInsets.zero,
+              ),
+              _buildTexto('Rubros Habilitados:', _observacionesController),
+              _buildTexto('Rubros Explotados:', _observacionesController),
+              _buildTexto(
+                  'Elementos de publicidad o de ocupación en la vía pública:',
+                  _observacionesController),
+              _buildTexto('Observaciones:', _observacionesController),
+            ],
+          ),
         ],
       ),
     );
@@ -284,6 +404,12 @@ class _PadronPageState extends State<PadronPage> {
     if (controller == _cuitController) campoKey = 'cuit';
     if (controller == _numeroController) campoKey = 'numero';
     if (controller == _numeroLocalController) campoKey = 'numeroLocal';
+    if (controller == _rubroshabilotadosController)
+      campoKey = 'rubroshabilitados';
+    if (controller == _rubrosexplotadosController)
+      campoKey = 'rubrosexplotados';
+    if (controller == _publicidadController) campoKey = 'publicidad';
+    if (controller == _observacionesController) campoKey = 'observaciones';
 
     bool esValido = _camposValidos[campoKey] ?? true;
 
