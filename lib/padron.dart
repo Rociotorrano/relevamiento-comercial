@@ -499,6 +499,7 @@ class _PadronPageState extends State<PadronPage> {
             value: selectedLocalidad,
             isExpanded: true,
             padding: const EdgeInsets.symmetric(horizontal: 10.0),
+            dropdownColor: Colors.white,
             items: localidades.map<DropdownMenuItem<String>>((localidad) {
               return DropdownMenuItem<String>(
                 value: localidad['pklocalidad'].toString(),
@@ -552,6 +553,7 @@ class _PadronPageState extends State<PadronPage> {
             value: selectedCalle,
             isExpanded: true,
             padding: const EdgeInsets.symmetric(horizontal: 10.0),
+            dropdownColor: Colors.white,
             items: calles.map<DropdownMenuItem<String>>((calle) {
               return DropdownMenuItem<String>(
                 value: calle['pkcalle'].toString(),
