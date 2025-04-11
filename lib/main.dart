@@ -154,14 +154,15 @@ class _LoginPageState extends State<LoginPage> {
                             color: Colors.white, fontWeight: FontWeight.bold),
                   ),
                 const SizedBox(height: 15.0),
-                Text(
-                  'Comercial',
-                  style: size.width >= 150
-                      ? texto.headlineLarge!.copyWith(
-                          color: Colors.white, fontWeight: FontWeight.bold)
-                      : texto.headlineSmall!.copyWith(
-                          color: Colors.white, fontWeight: FontWeight.bold),
-                ),
+                if (!keyboardIsOpen)
+                  Text(
+                    'Comercial',
+                    style: size.width >= 150
+                        ? texto.headlineLarge!.copyWith(
+                            color: Colors.white, fontWeight: FontWeight.bold)
+                        : texto.headlineSmall!.copyWith(
+                            color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
               ],
             ),
           ),
