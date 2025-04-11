@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:relevamientocomercial/padron.dart';
+import 'package:relevamientocomercial/servicios/guardar.dart';
 
 void main() {
   runApp(
@@ -53,6 +53,7 @@ class LoginData with ChangeNotifier {
   String? _usuario;
   String? _password;
   String _token = '';
+  List<Movement> historial = [];
 
   String? get usuario => _usuario;
   String? get password => _password;
@@ -67,6 +68,10 @@ class LoginData with ChangeNotifier {
   void setToken(String newToken) {
     _token = newToken;
     notifyListeners(); // Notifica a los widgets que usan este provider
+  }
+
+  void addMovement(String name) {
+    historial.add(Movement(name, DateTime.now()));
   }
 
   void toggleLoading(bool bool) {}
@@ -87,31 +92,31 @@ class _LoginPageState extends State<LoginPage> {
     loginData.setLoginData(nombreUsuario, contrasena);
 
     // Verificar la validez del nombre de usuario y la contraseña aquí
-    if (nombreUsuario == 'rocio' && contrasena == 'torrano') {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => PadronApp()),
-      );
-    } else {
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            content: Text('Nombre de usuario o contraseña incorrectos.'),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: Text('Aceptar'),
-              ),
-            ],
-          );
-        },
-      );
-    }
-    // login(context, nombreUsuario, contrasena, 1);
-    // loginData.addMovement(nombreUsuario);
+    // if (nombreUsuario == 'rocio' && contrasena == 'torrano') {
+    //   Navigator.pushReplacement(
+    //     context,
+    //     MaterialPageRoute(builder: (context) => PrincipalApp()),
+    //   );
+    // } else {
+    //   showDialog(
+    //     context: context,
+    //     builder: (BuildContext context) {
+    //       return AlertDialog(
+    //         content: Text('Nombre de usuario o contraseña incorrectos.'),
+    //         actions: [
+    //           TextButton(
+    //             onPressed: () {
+    //               Navigator.of(context).pop();
+    //             },
+    //             child: Text('Aceptar'),
+    //           ),
+    //         ],
+    //       );
+    //     },
+    //   );
+    // }
+    login(context, nombreUsuario, contrasena, 1);
+    loginData.addMovement(nombreUsuario);
   }
 
   @override
@@ -139,6 +144,24 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
                 const SizedBox(height: 40.0),
+                if (!keyboardIsOpen)
+                  Text(
+                    'Relevamiento',
+                    style: size.width >= 150
+                        ? texto.headlineLarge!.copyWith(
+                            color: Colors.white, fontWeight: FontWeight.bold)
+                        : texto.headlineSmall!.copyWith(
+                            color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
+                const SizedBox(height: 15.0),
+                Text(
+                  'Comercial',
+                  style: size.width >= 150
+                      ? texto.headlineLarge!.copyWith(
+                          color: Colors.white, fontWeight: FontWeight.bold)
+                      : texto.headlineSmall!.copyWith(
+                          color: Colors.white, fontWeight: FontWeight.bold),
+                ),
               ],
             ),
           ),

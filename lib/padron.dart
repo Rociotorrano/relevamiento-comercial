@@ -190,7 +190,7 @@ class _PadronPageState extends State<PadronPage> {
 
       if (image != null) {
         setState(() {
-          _foto.add(File(image.path)); // Agregar foto a la lista
+          _foto.add(File(image.path));
         });
       }
     } catch (e) {
@@ -240,17 +240,6 @@ class _PadronPageState extends State<PadronPage> {
                               width: double.infinity,
                               height: double.infinity,
                             ),
-                          ),
-                        ),
-                        Positioned(
-                          top: 10,
-                          right: 10,
-                          child: IconButton(
-                            icon: const Icon(Icons.close,
-                                color: Colors.white, size: 30),
-                            onPressed: () {
-                              Navigator.of(context).pop();
-                            },
                           ),
                         ),
                       ],
@@ -326,17 +315,9 @@ class _PadronPageState extends State<PadronPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Relevamiento',
+                'Relevamiento Comercial',
                 style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-              Text(
-                'Comercial',
-                style: TextStyle(
-                  fontSize: 22,
+                  fontSize: 28,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                 ),
