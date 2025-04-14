@@ -15,7 +15,6 @@ class PadronApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (context) => PadronData()),
-        // Provider(create: (context) => DataCubit()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -68,18 +67,23 @@ class _PadronPageState extends State<PadronPage> {
   final TextEditingController _observacionesController =
       TextEditingController();
 
+  bool _camposRequeridos = false;
   Map<String, bool> _camposValidos = {
-    'Nro. Padrón': true,
+    'nropadro': true,
     'cuit': true,
     'titular': true,
     'nombrefantasia': true,
-    'numero': true,
-    'numeroLocal': true,
     'localidad': true,
     'calle': true,
-    'rubroshabilitados': true,
-    'rubrosexplotados': true,
-    'publicidad': true,
+    'numero_calle': true,
+    'numero_local': true,
+    'estado': true,
+    'certificado_habilitacion': true,
+    'comprobantes_pago': true,
+    'servicio_delivery': true,
+    'rubros_habilitados': true,
+    'rubros_explota': true,
+    'elementos_publicidad': true,
     'observaciones': true,
   };
 
@@ -107,36 +111,35 @@ class _PadronPageState extends State<PadronPage> {
 
     Map<String, bool> validaciones = Map.from(_camposValidos);
 
-    // Validar cada campo
-    validaciones['Nro. Padrón'] = _padronController.text.isNotEmpty;
+    validaciones['nropadro'] = _padronController.text.isNotEmpty;
     validaciones['cuit'] = _cuitController.text.isNotEmpty;
     validaciones['titular'] = _titularController.text.isNotEmpty;
     validaciones['nombrefantasia'] = _nombrefantasiaController.text.isNotEmpty;
-    validaciones['numero'] = _numeroController.text.isNotEmpty;
-    validaciones['numeroLocal'] = _numeroLocalController.text.isNotEmpty;
 
     validaciones['localidad'] = selectedLocalidad != null;
     validaciones['calle'] = selectedCalle != null;
-    validaciones['estadoAbiertoocerrado'] =
+    validaciones['numero_calle'] = _numeroController.text.isNotEmpty;
+    validaciones['numero_local'] = _numeroLocalController.text.isNotEmpty;
+    validaciones['estado'] = selectedestadoAbiertoocerrado != null;
+    validaciones['certificado_habilitacion'] =
         selectedestadoAbiertoocerrado != null;
+    validaciones['comprobantes_pago'] = selectedestadoAbiertoocerrado != null;
+    validaciones['servicio_delivery'] = selectedestadoAbiertoocerrado != null;
 
-    validaciones['rubroshabilitados'] =
+    validaciones['rubros_habilitados'] =
         _rubroshabilotadosController.text.isNotEmpty;
-    validaciones['rubrosexpltados'] =
+    validaciones['rubros_explota'] =
         _rubrosexplotadosController.text.isNotEmpty;
-    validaciones['publicidad'] = _publicidadController.text.isNotEmpty;
+    validaciones['elementos_publicidad('] =
+        _publicidadController.text.isNotEmpty;
     validaciones['observaciones'] = _observacionesController.text.isNotEmpty;
-    validaciones['estadoAbiertoocerrado'] =
-        selectedestadoAbiertoocerrado != null;
 
-    // Verificar si algún campo no es válido
     if (validaciones.containsValue(false)) {
       formularioValido = false;
       _mostrarMensajeGuardado(
           'Por favor, complete todos los campos obligatorios.');
     }
 
-    // Actualizar el estado para reflejar los campos inválidos
     setState(() {
       _camposValidos = validaciones;
     });
@@ -168,8 +171,7 @@ class _PadronPageState extends State<PadronPage> {
                   child: const Text('Cancelar'),
                 ),
                 TextButton(
-                  onPressed: () =>
-                      exit(0), // o Navigator.pushReplacement a login
+                  onPressed: () => exit(0),
                   child: const Text('Salir'),
                 ),
               ],
@@ -179,7 +181,7 @@ class _PadronPageState extends State<PadronPage> {
         false;
 
     if (salir) {
-      exit(0); // O redireccionar al login si tu app maneja usuarios
+      exit(0);
     }
   }
 
@@ -297,6 +299,35 @@ class _PadronPageState extends State<PadronPage> {
     );
   }
 
+  Future<void> buscarYLlenarDatosPadron() async {
+    try {
+      final List<dynamic> resultado =
+          await traerDatosPadronFicha(_padronController.text);
+
+      print('Resultado de la consulta: $resultado');
+
+      if (resultado.isNotEmpty) {
+        setState(() {
+          _cuitController.text = resultado[0]["cuit"] ?? "";
+          _titularController.text = resultado[0]["titular"] ?? "";
+          _nombrefantasiaController.text = resultado[0]["nombrefantasia"] ?? "";
+          _camposRequeridos = false;
+        });
+      } else {
+        setState(() {
+          _cuitController.clear();
+          _titularController.clear();
+          _nombrefantasiaController.clear();
+          _camposRequeridos = true;
+          _mostrarMensajeGuardado(
+              'No se encontró información, por favor ingrese los datos para continuar');
+        });
+      }
+    } catch (e) {
+      print('Error en la solicitud: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -345,7 +376,7 @@ class _PadronPageState extends State<PadronPage> {
                 children: [
                   Expanded(
                     child: _buildTexto('Nro. Padrón:', _padronController,
-                        isNumeric: true),
+                        isNumeric: true, showSearchIcon: true),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
@@ -354,7 +385,7 @@ class _PadronPageState extends State<PadronPage> {
                   ),
                 ],
               ),
-              _buildTexto('Titular:', _nombrefantasiaController),
+              _buildTexto('Titular:', _titularController),
               _buildTexto('Nombre de Fantasía:', _nombrefantasiaController),
               const Divider(color: Color(0xFF40A5DD), thickness: 2),
               _buildDropdownLocalidad(),
@@ -453,7 +484,7 @@ class _PadronPageState extends State<PadronPage> {
               _buildFotos(),
               const SizedBox(height: 20),
               // ElevatedButton(
-              //   // onPressed: _guardarTodo,
+              //   onPressed: _guardarTodo,
               //   style: ElevatedButton.styleFrom(
               //     backgroundColor: const Color(0xFF40A5DD),
               //     padding: const EdgeInsets.symmetric(vertical: 10.0),
@@ -581,23 +612,22 @@ class _PadronPageState extends State<PadronPage> {
   }
 
   Widget _buildTexto(String label, TextEditingController controller,
-      {bool isNumeric = false, int maxLines = 1}) {
+      {bool isNumeric = false, int maxLines = 1, bool showSearchIcon = false}) {
     String campoKey = '';
-    if (controller == _padronController) campoKey = 'Nro. Padrón';
+
+    if (controller == _padronController) campoKey = 'nropadro';
     if (controller == _cuitController) campoKey = 'cuit';
-    if (controller == _numeroController) campoKey = 'titular';
-    if (controller == _numeroController) campoKey = 'nombrefantasia';
-    if (controller == _numeroController) campoKey = 'numero';
-    if (controller == _numeroLocalController) campoKey = 'numeroLocal';
+    if (controller == _titularController) campoKey = 'titular';
+    if (controller == _nombrefantasiaController) campoKey = 'nombrefantasia';
+    if (controller == _numeroController) campoKey = 'numero_calle';
+    if (controller == _numeroLocalController) campoKey = 'numero_local';
     if (controller == _rubroshabilotadosController)
-      campoKey = 'rubroshabilitados';
-    if (controller == _rubrosexplotadosController)
-      campoKey = 'rubrosexplotados';
-    if (controller == _publicidadController) campoKey = 'publicidad';
+      campoKey = 'rubros_habilitados';
+    if (controller == _rubrosexplotadosController) campoKey = 'rubros_explota';
+    if (controller == _publicidadController) campoKey = 'elementos_publicidad';
     if (controller == _observacionesController) campoKey = 'observaciones';
 
     bool esValido = _camposValidos[campoKey] ?? true;
-
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Column(
@@ -636,6 +666,14 @@ class _PadronPageState extends State<PadronPage> {
               ),
               contentPadding:
                   const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+              suffixIcon: showSearchIcon
+                  ? IconButton(
+                      icon: const Icon(Icons.search, color: Color(0xFF40A5DD)),
+                      onPressed: () async {
+                        buscarYLlenarDatosPadron();
+                      },
+                    )
+                  : null,
             ),
             onChanged: (value) {
               if (!esValido) {
