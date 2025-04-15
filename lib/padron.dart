@@ -337,7 +337,7 @@ class _PadronPageState extends State<PadronPage> {
           final datos = result[0];
           setState(() {
             cuitController.text = datos['cuit'] ?? '';
-            titularController.text = datos['titular'] ?? '';
+            titularController.text = datos['titular']?.trim() ?? '';
             nom_fantasiaController.text = datos['nom_fantasia']?.trim() ?? '';
             _camposHabilitados = false;
           });
@@ -388,8 +388,8 @@ class _PadronPageState extends State<PadronPage> {
       "cuit": cuitController.text.trim(),
       "titular": titularController.text.trim(),
       "nom_fantasia": nom_fantasiaController.text.trim(),
-      'fklocalidad': int.parse(selectedLocalidad!),
-      'fkcalle': int.parse(selectedCalle!),
+      'localidad': int.parse(selectedLocalidad!),
+      'calle': int.parse(selectedCalle!),
       "numero_calle": numeroController.text.trim(),
       "numero_local": numeroLocalController.text.trim(),
       "estado": selectedestadoAbiertoocerrado == "abierto" ? "A" : "CT",
@@ -401,6 +401,20 @@ class _PadronPageState extends State<PadronPage> {
       "elementos_publicidad": publicidadController.text.trim(),
       "observaciones": observacionesController.text.trim(),
     };
+
+    List<String> fotosBase64 = [];
+    for (var _foto in _foto) {
+      if (_foto != null) {
+        final bytes = await _foto.readAsBytes();
+        String base64Image = base64Encode(bytes);
+        fotosBase64.add(base64Image);
+      }
+    }
+
+    // Agregamos las fotos al JSON
+    if (fotosBase64.isNotEmpty) {
+      datosFicha['fotos'] = fotosBase64;
+    }
 
     print("Datos a enviar al backend: ${jsonEncode(datosFicha)}");
     var url = Uri.parse('http://11.11.15.20:5019/recursos/guardarDatosFicha');
@@ -772,7 +786,7 @@ class _PadronPageState extends State<PadronPage> {
 
     if (controller == cuitController) campoKey = 'cuit';
     if (controller == titularController) campoKey = 'titular';
-    if (controller == nom_fantasiaController) campoKey = 'nombrefantasia';
+    if (controller == nom_fantasiaController) campoKey = 'nom_fantasia';
     if (controller == numeroController) campoKey = 'numero_calle';
     if (controller == numeroLocalController) campoKey = 'numero_local';
     if (controller == rubroshabilotadosController)
