@@ -1,8 +1,11 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
+import 'package:relevamientocomercial/servicios/globals.dart' as globals;
 import 'package:relevamientocomercial/servicios/guardar.dart';
 
 void main() => runApp(const PadronApp());
@@ -47,28 +50,32 @@ class _PadronPageState extends State<PadronPage> {
   bool _certificadoHabilitacion = false;
   bool _comprobantesSegHigiene = false;
   bool _servicioDelivery = false;
-
+  bool _camposHabilitados = true;
   List<Map<String, dynamic>> localidades = [];
   List<Map<String, dynamic>> calles = [];
   final List<File> _foto = [];
 
-  final TextEditingController _padronController = TextEditingController();
-  final TextEditingController _cuitController = TextEditingController();
-  final TextEditingController _titularController = TextEditingController();
-  final TextEditingController _nombrefantasiaController =
+  final TextEditingController padronController = TextEditingController();
+  final TextEditingController cuitController = TextEditingController();
+  final TextEditingController titularController = TextEditingController();
+  final TextEditingController nombrefantasiaController =
       TextEditingController();
-  final TextEditingController _numeroController = TextEditingController();
-  final TextEditingController _numeroLocalController = TextEditingController();
-  final TextEditingController _rubroshabilotadosController =
+  final TextEditingController numeroController = TextEditingController();
+  final TextEditingController numeroLocalController = TextEditingController();
+  final TextEditingController rubroshabilotadosController =
       TextEditingController();
-  final TextEditingController _rubrosexplotadosController =
+  final TextEditingController rubrosexplotadosController =
       TextEditingController();
-  final TextEditingController _publicidadController = TextEditingController();
-  final TextEditingController _observacionesController =
-      TextEditingController();
+  final TextEditingController publicidadController = TextEditingController();
+  final TextEditingController observacionesController = TextEditingController();
 
-  bool _camposRequeridos = false;
-  Map<String, bool> _camposValidos = {
+  bool padronValido = false;
+  bool esValido = false;
+  bool cuitValido = false;
+  bool titularValido = false;
+  bool nom_fantasiaValido = false;
+
+  Map<String, bool> camposValidos = {
     'nropadro': true,
     'cuit': true,
     'titular': true,
@@ -109,17 +116,17 @@ class _PadronPageState extends State<PadronPage> {
   bool _validarFormulario() {
     bool formularioValido = true;
 
-    Map<String, bool> validaciones = Map.from(_camposValidos);
+    Map<String, bool> validaciones = Map.from(camposValidos);
 
-    validaciones['nropadro'] = _padronController.text.isNotEmpty;
-    validaciones['cuit'] = _cuitController.text.isNotEmpty;
-    validaciones['titular'] = _titularController.text.isNotEmpty;
-    validaciones['nombrefantasia'] = _nombrefantasiaController.text.isNotEmpty;
+    validaciones['nropadro'] = padronController.text.isNotEmpty;
+    validaciones['cuit'] = cuitController.text.isNotEmpty;
+    validaciones['titular'] = titularController.text.isNotEmpty;
+    validaciones['nombrefantasia'] = nombrefantasiaController.text.isNotEmpty;
 
     validaciones['localidad'] = selectedLocalidad != null;
     validaciones['calle'] = selectedCalle != null;
-    validaciones['numero_calle'] = _numeroController.text.isNotEmpty;
-    validaciones['numero_local'] = _numeroLocalController.text.isNotEmpty;
+    validaciones['numero_calle'] = numeroController.text.isNotEmpty;
+    validaciones['numero_local'] = numeroLocalController.text.isNotEmpty;
     validaciones['estado'] = selectedestadoAbiertoocerrado != null;
     validaciones['certificado_habilitacion'] =
         selectedestadoAbiertoocerrado != null;
@@ -127,12 +134,11 @@ class _PadronPageState extends State<PadronPage> {
     validaciones['servicio_delivery'] = selectedestadoAbiertoocerrado != null;
 
     validaciones['rubros_habilitados'] =
-        _rubroshabilotadosController.text.isNotEmpty;
-    validaciones['rubros_explota'] =
-        _rubrosexplotadosController.text.isNotEmpty;
+        rubroshabilotadosController.text.isNotEmpty;
+    validaciones['rubros_explota'] = rubrosexplotadosController.text.isNotEmpty;
     validaciones['elementos_publicidad('] =
-        _publicidadController.text.isNotEmpty;
-    validaciones['observaciones'] = _observacionesController.text.isNotEmpty;
+        publicidadController.text.isNotEmpty;
+    validaciones['observaciones'] = observacionesController.text.isNotEmpty;
 
     if (validaciones.containsValue(false)) {
       formularioValido = false;
@@ -141,7 +147,7 @@ class _PadronPageState extends State<PadronPage> {
     }
 
     setState(() {
-      _camposValidos = validaciones;
+      camposValidos = validaciones;
     });
 
     return formularioValido;
@@ -299,32 +305,148 @@ class _PadronPageState extends State<PadronPage> {
     );
   }
 
-  Future<void> buscarYLlenarDatosPadron() async {
+  Future<void> datosPadron() async {
+    String nropadro = padronController.text.trim();
+
+    if (nropadro.isEmpty || int.tryParse(nropadro) == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Ingrese un Nro. de Padrón válido')),
+      );
+      return;
+    }
+
+    var url =
+        Uri.parse('http://11.11.15.20:5019/recursos/traerDatosPadronFicha');
+
     try {
-      final List<dynamic> resultado =
-          await traerDatosPadronFicha(_padronController.text);
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${globals.miTokenGlobal}',
+        },
+        body: jsonEncode({"nropadro": nropadro}),
+      );
 
-      print('Resultado de la consulta: $resultado');
+      print(response.statusCode);
+      print("BODY RAW: '${response.body}'");
 
-      if (resultado.isNotEmpty) {
-        setState(() {
-          _cuitController.text = resultado[0]["cuit"] ?? "";
-          _titularController.text = resultado[0]["titular"] ?? "";
-          _nombrefantasiaController.text = resultado[0]["nombrefantasia"] ?? "";
-          _camposRequeridos = false;
-        });
+      if (response.statusCode == 200) {
+        final result = jsonDecode(response.body);
+
+        if (result is List && result.isNotEmpty) {
+          final datos = result[0];
+          setState(() {
+            cuitController.text = datos['cuit'] ?? '';
+            titularController.text = datos['titular'] ?? '';
+            nombrefantasiaController.text = datos['nom_fantasia']?.trim() ?? '';
+            _camposHabilitados = false;
+          });
+        } else {
+          limpiarCampos();
+          setState(() {
+            _camposHabilitados = true;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+                content:
+                    Text('No se encontraron datos, ingrese número de Padron')),
+          );
+        }
       } else {
-        setState(() {
-          _cuitController.clear();
-          _titularController.clear();
-          _nombrefantasiaController.clear();
-          _camposRequeridos = true;
-          _mostrarMensajeGuardado(
-              'No se encontró información, por favor ingrese los datos para continuar');
-        });
+        // Mostrar error si la respuesta del servidor no es exitosa
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error del servidor: ${response.statusCode}')),
+        );
       }
     } catch (e) {
-      print('Error en la solicitud: $e');
+      // Manejo de error de conexión
+      print('Ocurrió un error: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error de conexión')),
+      );
+    }
+  }
+
+  void limpiarCampos() {
+    cuitController.clear();
+    titularController.clear();
+    nombrefantasiaController.clear();
+  }
+
+  void _onpadronChanged(String value) {
+    setState(() {
+      padronValido = value.trim().isNotEmpty;
+      cuitValido = false;
+      titularValido = false;
+      nom_fantasiaValido = false;
+    });
+  }
+
+  Future<void> guardarTodo() async {
+    // Armamos el JSON con los valores actuales
+    final Map<String, dynamic> datosFicha = {
+      "nropadro": padronController.text.trim(),
+      "cuit": cuitController.text.trim(),
+      "titular": titularController.text.trim(),
+      "nom_fantasia": nombrefantasiaController.text.trim(),
+      "localidad": selectedLocalidad ?? "",
+      "calle": selectedCalle ?? "",
+      "numero_calle": numeroController.text.trim(),
+      "numero_local": numeroLocalController.text.trim(),
+      "estado": selectedestadoAbiertoocerrado == "abierto" ? "A" : "CT",
+      "certificado_habilitacion": _certificadoHabilitacion ? "SI" : "NO",
+      "comprobantes_pago": _comprobantesSegHigiene ? "SI" : "NO",
+      "servicio_delivery": _servicioDelivery ? "SI" : "NO",
+      "rubros_habilitados": rubroshabilotadosController.text.trim(),
+      "rubros_explota": rubrosexplotadosController.text.trim(),
+      "elementos_publicidad": publicidadController.text.trim(),
+      "observaciones": observacionesController.text.trim(),
+    };
+
+    List<String> fotosBase64 = [];
+    for (var _foto in _foto) {
+      if (_foto != null) {
+        final bytes = await _foto.readAsBytes();
+        String base64Image = base64Encode(bytes);
+        fotosBase64.add(base64Image);
+      }
+    }
+
+    // Agregamos las fotos al JSON
+    if (fotosBase64.isNotEmpty) {
+      datosFicha['fotos'] = fotosBase64;
+    }
+
+    var url = Uri.parse('http://11.11.15.20:5019/recursos/guardarDatosFicha');
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${globals.miTokenGlobal}',
+        },
+        body: jsonEncode(datosFicha),
+      );
+
+      print("Status: ${response.statusCode}");
+      print("Body: ${response.body}");
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Datos guardados correctamente')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al guardar: ${response.statusCode}')),
+        );
+      }
+    } catch (e) {
+      print("Error al guardar: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error de conexión')),
+      );
     }
   }
 
@@ -375,18 +497,17 @@ class _PadronPageState extends State<PadronPage> {
               Row(
                 children: [
                   Expanded(
-                    child: _buildTexto('Nro. Padrón:', _padronController,
-                        isNumeric: true, showSearchIcon: true),
+                    child: _buildPadron(padronController),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
                     child:
-                        _buildTexto('Cuit:', _cuitController, isNumeric: true),
+                        _buildTexto('Cuit:', cuitController, isNumeric: true),
                   ),
                 ],
               ),
-              _buildTexto('Titular:', _titularController),
-              _buildTexto('Nombre de Fantasía:', _nombrefantasiaController),
+              _buildTexto('Titular:', titularController),
+              _buildTexto('Nombre de Fantasía:', nombrefantasiaController),
               const Divider(color: Color(0xFF40A5DD), thickness: 2),
               _buildDropdownLocalidad(),
               const Divider(color: Color(0xFF40A5DD), thickness: 2),
@@ -395,12 +516,12 @@ class _PadronPageState extends State<PadronPage> {
               Row(
                 children: [
                   Expanded(
-                    child: _buildTexto('Número:', _numeroController,
+                    child: _buildTexto('Número:', numeroController,
                         isNumeric: true),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
-                    child: _buildTexto('Nro. Local:', _numeroLocalController,
+                    child: _buildTexto('Nro. Local:', numeroLocalController,
                         isNumeric: true),
                   ),
                 ],
@@ -470,34 +591,38 @@ class _PadronPageState extends State<PadronPage> {
                 controlAffinity: ListTileControlAffinity.leading,
                 contentPadding: EdgeInsets.zero,
               ),
-              _buildTexto('Rubros Habilitados:', _rubroshabilotadosController,
+              _buildTexto('Rubros Habilitados:', rubroshabilotadosController,
                   maxLines: 6),
-              _buildTexto('Rubros Explotados:', _rubrosexplotadosController,
+              _buildTexto('Rubros Explotados:', rubrosexplotadosController,
                   maxLines: 6),
               _buildTexto(
                   'Elementos de publicidad o de ocupación en la vía pública:',
-                  _publicidadController,
+                  publicidadController,
                   maxLines: 6),
-              _buildTexto('Observaciones:', _observacionesController,
+              _buildTexto('Observaciones:', observacionesController,
                   maxLines: 6),
               const SizedBox(height: 30),
               _buildFotos(),
               const SizedBox(height: 20),
-              // ElevatedButton(
-              //   onPressed: _guardarTodo,
-              //   style: ElevatedButton.styleFrom(
-              //     backgroundColor: const Color(0xFF40A5DD),
-              //     padding: const EdgeInsets.symmetric(vertical: 10.0),
-              //   ),
-              //   child: const Text(
-              //     'GUARDAR',
-              //     style: TextStyle(
-              //       fontSize: 16,
-              //       fontWeight: FontWeight.bold,
-              //       color: Colors.white,
-              //     ),
-              //   ),
-              // ),
+              Center(
+                child: ElevatedButton(
+                  onPressed: guardarTodo,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF40A5DD),
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 15.0, horizontal: 40.0),
+                    minimumSize: Size(150, 50),
+                  ),
+                  child: const Text(
+                    'GUARDAR',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              )
             ],
           ),
         ),
@@ -506,7 +631,7 @@ class _PadronPageState extends State<PadronPage> {
   }
 
   Widget _buildDropdownLocalidad() {
-    bool esValido = _camposValidos['localidad'] ?? true;
+    bool esValido = camposValidos['localidad'] ?? true;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -541,7 +666,7 @@ class _PadronPageState extends State<PadronPage> {
               setState(() {
                 selectedLocalidad = value;
                 calles = [];
-                _camposValidos['localidad'] = true;
+                camposValidos['localidad'] = true;
               });
               _cargarCalles(value!);
             },
@@ -560,7 +685,7 @@ class _PadronPageState extends State<PadronPage> {
   }
 
   Widget _buildDropdownCalle() {
-    bool esValido = _camposValidos['calle'] ?? true;
+    bool esValido = camposValidos['calle'] ?? true;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -594,7 +719,7 @@ class _PadronPageState extends State<PadronPage> {
             onChanged: (value) {
               setState(() {
                 selectedCalle = value;
-                _camposValidos['calle'] = true;
+                camposValidos['calle'] = true;
               });
             },
           ),
@@ -611,31 +736,17 @@ class _PadronPageState extends State<PadronPage> {
     );
   }
 
-  Widget _buildTexto(String label, TextEditingController controller,
-      {bool isNumeric = false, int maxLines = 1, bool showSearchIcon = false}) {
-    String campoKey = '';
+  Widget _buildPadron(TextEditingController controller) {
+    bool esValido = camposValidos['padron'] ?? true;
 
-    if (controller == _padronController) campoKey = 'nropadro';
-    if (controller == _cuitController) campoKey = 'cuit';
-    if (controller == _titularController) campoKey = 'titular';
-    if (controller == _nombrefantasiaController) campoKey = 'nombrefantasia';
-    if (controller == _numeroController) campoKey = 'numero_calle';
-    if (controller == _numeroLocalController) campoKey = 'numero_local';
-    if (controller == _rubroshabilotadosController)
-      campoKey = 'rubros_habilitados';
-    if (controller == _rubrosexplotadosController) campoKey = 'rubros_explota';
-    if (controller == _publicidadController) campoKey = 'elementos_publicidad';
-    if (controller == _observacionesController) campoKey = 'observaciones';
-
-    bool esValido = _camposValidos[campoKey] ?? true;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            label,
-            style: const TextStyle(
+          const Text(
+            'Nro. de Padrón:',
+            style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
               color: Colors.black,
@@ -644,47 +755,78 @@ class _PadronPageState extends State<PadronPage> {
           const SizedBox(height: 5),
           TextField(
             controller: controller,
-            keyboardType:
-                isNumeric ? TextInputType.number : TextInputType.multiline,
-            maxLines: maxLines,
+            keyboardType: TextInputType.number,
             decoration: InputDecoration(
+              suffixIcon: IconButton(
+                icon: const Icon(Icons.search),
+                onPressed: datosPadron,
+              ),
               errorText: !esValido ? "*requerido" : null,
               errorStyle: const TextStyle(color: Colors.red),
               enabledBorder: OutlineInputBorder(
                 borderSide: BorderSide(
                   color: esValido
-                      ? Color.fromARGB(255, 128, 122, 122)
+                      ? const Color.fromARGB(255, 128, 122, 122)
                       : Colors.red,
                   width: 1.5,
                 ),
               ),
-              focusedBorder: OutlineInputBorder(
-                borderSide: BorderSide(
-                  color: esValido ? const Color(0xFF40A5DD) : Colors.red,
-                  width: 1.5,
-                ),
+              focusedBorder: const OutlineInputBorder(
+                borderSide: BorderSide(color: Color(0xFF40A5DD), width: 2.0),
               ),
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-              suffixIcon: showSearchIcon
-                  ? IconButton(
-                      icon: const Icon(Icons.search, color: Color(0xFF40A5DD)),
-                      onPressed: () async {
-                        buscarYLlenarDatosPadron();
-                      },
-                    )
-                  : null,
             ),
-            onChanged: (value) {
-              if (!esValido) {
-                setState(() {
-                  _camposValidos[campoKey] = true;
-                });
-              }
-            },
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildTexto(String label, TextEditingController controller,
+      {bool isNumeric = false, int maxLines = 1, bool showSearchIcon = false}) {
+    String campoKey = '';
+
+    if (controller == cuitController) campoKey = 'cuit';
+    if (controller == titularController) campoKey = 'titular';
+    if (controller == nombrefantasiaController) campoKey = 'nombrefantasia';
+    if (controller == numeroController) campoKey = 'numero_calle';
+    if (controller == numeroLocalController) campoKey = 'numero_local';
+    if (controller == rubroshabilotadosController)
+      campoKey = 'rubros_habilitados';
+    if (controller == rubrosexplotadosController) campoKey = 'rubros_explota';
+    if (controller == publicidadController) campoKey = 'elementos_publicidad';
+    if (controller == observacionesController) campoKey = 'observaciones';
+
+    bool esValido = camposValidos[campoKey] ?? true;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
+          ),
+        ),
+        const SizedBox(height: 5),
+        TextField(
+          controller: controller,
+          keyboardType:
+              isNumeric ? TextInputType.number : TextInputType.multiline,
+          maxLines: maxLines,
+          decoration: InputDecoration(
+            errorText: !esValido ? "*requerido" : null,
+            errorStyle: const TextStyle(color: Colors.red),
+            enabledBorder: OutlineInputBorder(
+              borderSide: BorderSide(
+                color:
+                    esValido ? Color.fromARGB(255, 128, 122, 122) : Colors.red,
+                width: 1.5,
+              ),
+            ),
+          ),
+        ),
+      ]),
     );
   }
 }

@@ -191,10 +191,6 @@ Future<List<Map<String, dynamic>>> traerCalle(fklocalidad) async {
   try {
     final response = await http.post(
       url,
-      headers: {
-        'Content-Type': 'application/json; charset=UTF-8',
-        'Authorization': 'Bearer ${globals.miTokenGlobal}',
-      },
       body: jsonEncode({"fklocalidad": fklocalidad}),
     );
 
@@ -215,49 +211,5 @@ Future<List<Map<String, dynamic>>> traerCalle(fklocalidad) async {
     }
   } catch (e) {
     throw Exception('Error al obtener calles: $e');
-  }
-}
-
-Future<List> traerDatosPadronFicha(String nropadro) async {
-  var url = Uri.parse('http://11.11.15.20:5019/recursos/traerDatosPadronFicha');
-  print(nropadro);
-  try {
-    if (nropadro.isNotEmpty) {
-      final response = await http.post(
-        url,
-        body: jsonEncode({"nropadro": nropadro}),
-      );
-
-      print('Código de respuesta: ${response.statusCode}');
-      print('Body: ${response.body}');
-
-      if (response.statusCode == 200) {
-        final dynamic result = jsonDecode(response.body);
-
-        if (result is List) {
-          print('Received a list with ${result.length} items.');
-          return result;
-        } else if (result is Map) {
-          print('Received a map:');
-          result.forEach((key, value) {
-            print('$key: $value');
-          });
-          return [];
-        } else {
-          print(
-              'Error: Expected a list or a map but received a ${result.runtimeType}');
-          return [];
-        }
-      } else {
-        print('Error: Status Code ${response.statusCode}');
-        return [];
-      }
-    } else {
-      print('Error: Patente is empty');
-      return [];
-    }
-  } catch (e) {
-    print('Error occurred: $e');
-    return [];
   }
 }
