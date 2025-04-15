@@ -368,9 +368,29 @@ class _PadronPageState extends State<PadronPage> {
   }
 
   void limpiarCampos() {
+    padronController.clear();
     cuitController.clear();
     titularController.clear();
     nom_fantasiaController.clear();
+    numeroController.clear();
+    numeroLocalController.clear();
+
+    rubroshabilotadosController.clear();
+    rubrosexplotadosController.clear();
+    publicidadController.clear();
+    observacionesController.clear();
+
+    setState(() {
+      selectedLocalidad = null;
+      selectedCalle = null;
+      selectedestadoAbiertoocerrado = null;
+
+      _certificadoHabilitacion = false;
+      _comprobantesSegHigiene = false;
+      _servicioDelivery = false;
+      _foto.clear();
+      camposValidos.updateAll((key, value) => true);
+    });
   }
 
   void _onpadronChanged(String value) {
@@ -411,7 +431,6 @@ class _PadronPageState extends State<PadronPage> {
       }
     }
 
-    // Agregamos las fotos al JSON
     if (fotosBase64.isNotEmpty) {
       datosFicha['fotos'] = fotosBase64;
     }
@@ -433,6 +452,7 @@ class _PadronPageState extends State<PadronPage> {
       print("Body: ${response.body}");
 
       if (response.statusCode == 200) {
+        limpiarCampos();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Datos guardados correctamente')),
         );
