@@ -58,8 +58,7 @@ class _PadronPageState extends State<PadronPage> {
   final TextEditingController padronController = TextEditingController();
   final TextEditingController cuitController = TextEditingController();
   final TextEditingController titularController = TextEditingController();
-  final TextEditingController nombrefantasiaController =
-      TextEditingController();
+  final TextEditingController nom_fantasiaController = TextEditingController();
   final TextEditingController numeroController = TextEditingController();
   final TextEditingController numeroLocalController = TextEditingController();
   final TextEditingController rubroshabilotadosController =
@@ -121,7 +120,7 @@ class _PadronPageState extends State<PadronPage> {
     validaciones['nropadro'] = padronController.text.isNotEmpty;
     validaciones['cuit'] = cuitController.text.isNotEmpty;
     validaciones['titular'] = titularController.text.isNotEmpty;
-    validaciones['nombrefantasia'] = nombrefantasiaController.text.isNotEmpty;
+    validaciones['nom_fantasia'] = nom_fantasiaController.text.isNotEmpty;
 
     validaciones['localidad'] = selectedLocalidad != null;
     validaciones['calle'] = selectedCalle != null;
@@ -339,7 +338,7 @@ class _PadronPageState extends State<PadronPage> {
           setState(() {
             cuitController.text = datos['cuit'] ?? '';
             titularController.text = datos['titular'] ?? '';
-            nombrefantasiaController.text = datos['nom_fantasia']?.trim() ?? '';
+            nom_fantasiaController.text = datos['nom_fantasia']?.trim() ?? '';
             _camposHabilitados = false;
           });
         } else {
@@ -371,7 +370,7 @@ class _PadronPageState extends State<PadronPage> {
   void limpiarCampos() {
     cuitController.clear();
     titularController.clear();
-    nombrefantasiaController.clear();
+    nom_fantasiaController.clear();
   }
 
   void _onpadronChanged(String value) {
@@ -384,14 +383,13 @@ class _PadronPageState extends State<PadronPage> {
   }
 
   Future<void> guardarTodo() async {
-    // Armamos el JSON con los valores actuales
     final Map<String, dynamic> datosFicha = {
       "nropadro": padronController.text.trim(),
       "cuit": cuitController.text.trim(),
       "titular": titularController.text.trim(),
-      "nom_fantasia": nombrefantasiaController.text.trim(),
-      "localidad": selectedLocalidad ?? "",
-      "calle": selectedCalle ?? "",
+      "nom_fantasia": nom_fantasiaController.text.trim(),
+      'fklocalidad': int.parse(selectedLocalidad!),
+      'fkcalle': int.parse(selectedCalle!),
       "numero_calle": numeroController.text.trim(),
       "numero_local": numeroLocalController.text.trim(),
       "estado": selectedestadoAbiertoocerrado == "abierto" ? "A" : "CT",
@@ -404,20 +402,7 @@ class _PadronPageState extends State<PadronPage> {
       "observaciones": observacionesController.text.trim(),
     };
 
-    List<String> fotosBase64 = [];
-    for (var _foto in _foto) {
-      if (_foto != null) {
-        final bytes = await _foto.readAsBytes();
-        String base64Image = base64Encode(bytes);
-        fotosBase64.add(base64Image);
-      }
-    }
-
-    // Agregamos las fotos al JSON
-    if (fotosBase64.isNotEmpty) {
-      datosFicha['fotos'] = fotosBase64;
-    }
-
+    print("Datos a enviar al backend: ${jsonEncode(datosFicha)}");
     var url = Uri.parse('http://11.11.15.20:5019/recursos/guardarDatosFicha');
 
     try {
@@ -507,7 +492,7 @@ class _PadronPageState extends State<PadronPage> {
                 ],
               ),
               _buildTexto('Titular:', titularController),
-              _buildTexto('Nombre de Fantasía:', nombrefantasiaController),
+              _buildTexto('Nombre de Fantasía:', nom_fantasiaController),
               const Divider(color: Color(0xFF40A5DD), thickness: 2),
               _buildDropdownLocalidad(),
               const Divider(color: Color(0xFF40A5DD), thickness: 2),
@@ -787,7 +772,7 @@ class _PadronPageState extends State<PadronPage> {
 
     if (controller == cuitController) campoKey = 'cuit';
     if (controller == titularController) campoKey = 'titular';
-    if (controller == nombrefantasiaController) campoKey = 'nombrefantasia';
+    if (controller == nom_fantasiaController) campoKey = 'nombrefantasia';
     if (controller == numeroController) campoKey = 'numero_calle';
     if (controller == numeroLocalController) campoKey = 'numero_local';
     if (controller == rubroshabilotadosController)

@@ -191,6 +191,10 @@ Future<List<Map<String, dynamic>>> traerCalle(fklocalidad) async {
   try {
     final response = await http.post(
       url,
+      headers: {
+        'Content-Type': 'application/json; charset=UTF-8',
+        'Authorization': 'Bearer ${globals.miTokenGlobal}',
+      },
       body: jsonEncode({"fklocalidad": fklocalidad}),
     );
 
