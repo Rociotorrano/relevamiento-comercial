@@ -407,10 +407,8 @@ class _PadronPageState extends State<PadronPage> {
         'https://backend.sim.lacosta.gob.ar/recursos/guardarDatosFicha');
     final request = http.MultipartRequest('POST', uri);
 
-    // Agregar token de autorización
     request.headers['Authorization'] = 'Bearer ${globals.miTokenGlobal}';
 
-    // Agregar los campos como si fueran un formulario
     request.fields['nropadro'] = padronController.text.trim();
     request.fields['cuit'] = cuitController.text.trim();
     request.fields['titular'] = titularController.text.trim();
