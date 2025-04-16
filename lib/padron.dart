@@ -328,7 +328,7 @@ class _PadronPageState extends State<PadronPage> {
       );
 
       print(response.statusCode);
-      print("BODY RAW: '${response.body}'");
+      print("BODY : '${response.body}'");
 
       if (response.statusCode == 200) {
         final result = jsonDecode(response.body);
