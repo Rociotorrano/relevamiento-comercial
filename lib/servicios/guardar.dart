@@ -4,24 +4,20 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:provider/provider.dart';
 import 'package:relevamientocomercial/main.dart';
 import 'package:relevamientocomercial/padron.dart';
-import 'package:relevamientocomercial/servicios/globals.dart';
+import 'package:relevamientocomercial/servicios/globals.dart' as globals;
 import 'package:relevamientocomercial/servicios/ubicacion.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import 'globals.dart' as globals;
 
 Future<List<LoginApp>?> login(
     BuildContext context, String usuario, String password, int pasar) async {
   var url = Uri.parse('https://backend.sim.lacosta.gob.ar/loguear');
 
-// http://11.11.15.8:4011/login//
   final hasPermission = await handleLocationPermission(context);
   if (!hasPermission) {
     dialogAceptar(context,
-        "No hay acceso a la ubicación por favor habilite los servicios", 0);
+        "No hay acceso a la ubicación. Por favor, habilite los servicios", 0);
 
     return null;
   }
@@ -40,14 +36,13 @@ Future<List<LoginApp>?> login(
       print('Datos enviados exitosamente.');
       final data = jsonDecode(response.body);
       if (data['estado']) {
-        miTokenGlobal = data['token']; // Asignar valor a la variable global
-        var loginData = Provider.of<LoginData>(context, listen: false);
-        loginData.setToken(data['token']);
+        globals.miTokenGlobal = data['token'];
+        print('Token guardado: ${globals.miTokenGlobal}');
 
         if (pasar == 1)
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => const PadronApp()),
+            MaterialPageRoute(builder: (context) => PadronApp()),
           );
         return null;
       } else {
@@ -64,7 +59,7 @@ Future<List<LoginApp>?> login(
     }
   } catch (error) {
     print('Error al intentar iniciar sesión: $error');
-    dialogAceptar(context, 'Ocurrio un error, intente nuevamente.', 0);
+    dialogAceptar(context, 'Usuario o contraseña incorrectos.', 0);
     return null;
   }
 }

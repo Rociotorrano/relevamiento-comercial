@@ -91,30 +91,6 @@ class _LoginPageState extends State<LoginPage> {
     var loginData = Provider.of<LoginData>(context, listen: false);
     loginData.setLoginData(nombreUsuario, contrasena);
 
-    // Verificar la validez del nombre de usuario y la contraseña aquí
-    // if (nombreUsuario == 'rocio' && contrasena == 'torrano') {
-    //   Navigator.pushReplacement(
-    //     context,
-    //     MaterialPageRoute(builder: (context) => PrincipalApp()),
-    //   );
-    // } else {
-    //   showDialog(
-    //     context: context,
-    //     builder: (BuildContext context) {
-    //       return AlertDialog(
-    //         content: Text('Nombre de usuario o contraseña incorrectos.'),
-    //         actions: [
-    //           TextButton(
-    //             onPressed: () {
-    //               Navigator.of(context).pop();
-    //             },
-    //             child: Text('Aceptar'),
-    //           ),
-    //         ],
-    //       );
-    //     },
-    //   );
-    // }
     login(context, nombreUsuario, contrasena, 1);
     loginData.addMovement(nombreUsuario);
   }
