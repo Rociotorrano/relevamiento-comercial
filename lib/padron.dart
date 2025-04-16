@@ -314,8 +314,8 @@ class _PadronPageState extends State<PadronPage> {
       return;
     }
 
-    var url =
-        Uri.parse('http://11.11.15.20:5019/recursos/traerDatosPadronFicha');
+    var url = Uri.parse(
+        'https://backend.sim.lacosta.gob.ar/recursos/traerDatosPadronFicha');
 
     try {
       final response = await http.post(
@@ -403,53 +403,54 @@ class _PadronPageState extends State<PadronPage> {
   }
 
   Future<void> guardarTodo() async {
-    final Map<String, dynamic> datosFicha = {
-      "nropadro": padronController.text.trim(),
-      "cuit": cuitController.text.trim(),
-      "titular": titularController.text.trim(),
-      "nom_fantasia": nom_fantasiaController.text.trim(),
-      'localidad': int.parse(selectedLocalidad!),
-      'calle': int.parse(selectedCalle!),
-      "numero_calle": numeroController.text.trim(),
-      "numero_local": numeroLocalController.text.trim(),
-      "estado": selectedestadoAbiertoocerrado == "abierto" ? "A" : "CT",
-      "certificado_habilitacion": _certificadoHabilitacion ? "SI" : "NO",
-      "comprobantes_pago": _comprobantesSegHigiene ? "SI" : "NO",
-      "servicio_delivery": _servicioDelivery ? "SI" : "NO",
-      "rubros_habilitados": rubroshabilotadosController.text.trim(),
-      "rubros_explota": rubrosexplotadosController.text.trim(),
-      "elementos_publicidad": publicidadController.text.trim(),
-      "observaciones": observacionesController.text.trim(),
-    };
+    final uri = Uri.parse(
+        'https://backend.sim.lacosta.gob.ar/recursos/guardarDatosFicha');
+    final request = http.MultipartRequest('POST', uri);
 
-    List<String> fotosBase64 = [];
-    for (var _foto in _foto) {
-      if (_foto != null) {
-        final bytes = await _foto.readAsBytes();
-        String base64Image = base64Encode(bytes);
-        fotosBase64.add(base64Image);
+    // Agregar token de autorización
+    request.headers['Authorization'] = 'Bearer ${globals.miTokenGlobal}';
+
+    // Agregar los campos como si fueran un formulario
+    request.fields['nropadro'] = padronController.text.trim();
+    request.fields['cuit'] = cuitController.text.trim();
+    request.fields['titular'] = titularController.text.trim();
+    request.fields['nom_fantasia'] = nom_fantasiaController.text.trim();
+    request.fields['localidad'] = selectedLocalidad!;
+    request.fields['calle'] = selectedCalle!;
+    request.fields['numero_calle'] = numeroController.text.trim();
+    request.fields['numero_local'] = numeroLocalController.text.trim();
+    request.fields['estado'] =
+        selectedestadoAbiertoocerrado == "abierto" ? "A" : "CT";
+    request.fields['certificado_habilitacion'] =
+        _certificadoHabilitacion ? "SI" : "NO";
+    request.fields['comprobantes_pago'] = _comprobantesSegHigiene ? "SI" : "NO";
+    request.fields['servicio_delivery'] = _servicioDelivery ? "SI" : "NO";
+    request.fields['rubros_habilitados'] =
+        rubroshabilotadosController.text.trim();
+    request.fields['rubros_explota'] = rubrosexplotadosController.text.trim();
+    request.fields['elementos_publicidad'] = publicidadController.text.trim();
+    request.fields['observaciones'] = observacionesController.text.trim();
+
+    //PASAR AL BACKEND LA FOTO COMO ARCHIVO
+    for (int i = 0; i < _foto.length; i++) {
+      var archivo = _foto[i];
+      if (archivo != null) {
+        final stream = http.ByteStream(archivo.openRead());
+        final length = await archivo.length();
+        final multipartFile = http.MultipartFile(
+          'archivo', // NOMBRE QUE ESPERA EN EL BACKEND
+          stream,
+          length,
+          filename: archivo.path.split('/').last,
+        );
+        request.files.add(multipartFile);
       }
     }
 
-    if (fotosBase64.isNotEmpty) {
-      datosFicha['fotos'] = fotosBase64;
-    }
-
-    print("Datos a enviar al backend: ${jsonEncode(datosFicha)}");
-    var url = Uri.parse('http://11.11.15.20:5019/recursos/guardarDatosFicha');
-
     try {
-      final response = await http.post(
-        url,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ${globals.miTokenGlobal}',
-        },
-        body: jsonEncode(datosFicha),
-      );
+      final response = await request.send();
 
       print("Status: ${response.statusCode}");
-      print("Body: ${response.body}");
 
       if (response.statusCode == 200) {
         limpiarCampos();
