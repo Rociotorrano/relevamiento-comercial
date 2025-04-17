@@ -113,44 +113,42 @@ class _PadronPageState extends State<PadronPage> {
   }
 
   bool _validarFormulario() {
-    bool formularioValido = true;
+  bool formularioValido = true;
 
-    Map<String, bool> validaciones = Map.from(camposValidos);
+  Map<String, bool> validaciones = Map.from(camposValidos);
 
-    validaciones['nropadro'] = padronController.text.isNotEmpty;
-    validaciones['cuit'] = cuitController.text.isNotEmpty;
-    validaciones['titular'] = titularController.text.isNotEmpty;
-    validaciones['nom_fantasia'] = nom_fantasiaController.text.isNotEmpty;
+  validaciones['nropadro'] = padronController.text.isNotEmpty;
+  validaciones['cuit'] = cuitController.text.isNotEmpty;
+  validaciones['titular'] = titularController.text.isNotEmpty;
+  validaciones['nom_fantasia'] = nom_fantasiaController.text.isNotEmpty;
 
-    validaciones['localidad'] = selectedLocalidad != null;
-    validaciones['calle'] = selectedCalle != null;
-    validaciones['numero_calle'] = numeroController.text.isNotEmpty;
-    validaciones['numero_local'] = numeroLocalController.text.isNotEmpty;
-    validaciones['estado'] = selectedestadoAbiertoocerrado != null;
-    validaciones['certificado_habilitacion'] =
-        selectedestadoAbiertoocerrado != null;
-    validaciones['comprobantes_pago'] = selectedestadoAbiertoocerrado != null;
-    validaciones['servicio_delivery'] = selectedestadoAbiertoocerrado != null;
+  validaciones['localidad'] = selectedLocalidad != null && selectedLocalidad!.isNotEmpty;
+  validaciones['calle'] = selectedCalle != null && selectedCalle!.isNotEmpty;
+  validaciones['numero_calle'] = numeroController.text.isNotEmpty;
+  validaciones['numero_local'] = numeroLocalController.text.isNotEmpty;
+  validaciones['estado'] = selectedestadoAbiertoocerrado != null;
+  validaciones['certificado_habilitacion'] = selectedestadoAbiertoocerrado != null;
+  validaciones['comprobantes_pago'] = selectedestadoAbiertoocerrado != null;
+  validaciones['servicio_delivery'] = selectedestadoAbiertoocerrado != null;
 
-    validaciones['rubros_habilitados'] =
-        rubroshabilotadosController.text.isNotEmpty;
-    validaciones['rubros_explota'] = rubrosexplotadosController.text.isNotEmpty;
-    validaciones['elementos_publicidad('] =
-        publicidadController.text.isNotEmpty;
-    validaciones['observaciones'] = observacionesController.text.isNotEmpty;
+  validaciones['rubros_habilitados'] = rubroshabilotadosController.text.isNotEmpty;
+  validaciones['rubros_explota'] = rubrosexplotadosController.text.isNotEmpty;
+  validaciones['elementos_publicidad'] = publicidadController.text.isNotEmpty;  
+  validaciones['observaciones'] = observacionesController.text.isNotEmpty;
 
-    if (validaciones.containsValue(false)) {
-      formularioValido = false;
-      _mostrarMensajeGuardado(
-          'Por favor, complete todos los campos obligatorios.');
-    }
 
-    setState(() {
-      camposValidos = validaciones;
-    });
-
-    return formularioValido;
+  if (validaciones.containsValue(false)) {
+    formularioValido = false;
+    _mostrarMensajeGuardado('Por favor, complete todos los campos obligatorios.');
   }
+
+  setState(() {
+    camposValidos = validaciones;
+  });
+
+  return formularioValido;
+}
+
 
   Future<void> _mostrarMensajeGuardado(String mensaje) async {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -342,14 +340,14 @@ class _PadronPageState extends State<PadronPage> {
             _camposHabilitados = false;
           });
         } else {
-          limpiarCampos();
+   
           setState(() {
             _camposHabilitados = true;
           });
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
                 content:
-                    Text('No se encontraron datos, ingrese número de Padron')),
+                    Text('No se encontro información, por favor ingrese datos')),
           );
         }
       } else {
@@ -450,12 +448,32 @@ class _PadronPageState extends State<PadronPage> {
 
       print("Status: ${response.statusCode}");
 
-      if (response.statusCode == 200) {
-        limpiarCampos();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Datos guardados correctamente')),
-        );
-      } else {
+     if (response.statusCode == 200) {
+  limpiarCampos();
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(backgroundColor: Colors.white,
+        
+        title: const Text('Datos guardados correctamente', style: TextStyle(
+          fontSize: 16,
+          color: Colors.black,
+        ),
+        ),
+   
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop(); 
+            },
+            child: const Text('OK'),
+          ),
+        ],
+      );
+    },
+  );
+}
+else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error al guardar: ${response.statusCode}')),
         );
@@ -483,12 +501,21 @@ class _PadronPageState extends State<PadronPage> {
           padding: EdgeInsets.only(left: 20.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.start,
+            
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Text(
-                'Relevamiento Comercial',
+                'Relevamiento',
                 style: TextStyle(
-                  fontSize: 28,
+                  fontSize: 30,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),const SizedBox(height: 10.0),
+               Text(
+                'Comercial',
+                style: TextStyle(
+                  fontSize: 30,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                 ),
@@ -531,50 +558,36 @@ class _PadronPageState extends State<PadronPage> {
               const Divider(color: Color(0xFF40A5DD), thickness: 2),
               _buildDropdownCalle(),
               const Divider(color: Color(0xFF40A5DD), thickness: 2),
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildTexto('Número:', numeroController,
-                        isNumeric: true),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: _buildTexto('Nro. Local:', numeroLocalController,
-                        isNumeric: true),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: RadioListTile<String>(
-                      title: const Text('Abierto'),
-                      value: 'abierto',
-                      groupValue: selectedestadoAbiertoocerrado,
-                      onChanged: (value) {
-                        setState(() {
-                          selectedestadoAbiertoocerrado = value;
-                        });
-                      },
-                      contentPadding: EdgeInsets.zero,
-                    ),
-                  ),
-                  Expanded(
-                    child: RadioListTile<String>(
-                      title: const Text('Temporalmente cerrado'),
-                      value: 'Temporalmente cerrado',
-                      groupValue: selectedestadoAbiertoocerrado,
-                      onChanged: (value) {
-                        setState(() {
-                          selectedestadoAbiertoocerrado = value;
-                        });
-                      },
-                      contentPadding: EdgeInsets.zero,
-                    ),
-                  ),
-                ],
-              ),
+            const SizedBox(height: 16),
+Column(
+  crossAxisAlignment: CrossAxisAlignment.start,
+  children: [
+    RadioListTile<String>(
+      title: const Text('Abierto'),
+      value: 'abierto',
+      groupValue: selectedestadoAbiertoocerrado,
+      onChanged: (value) {
+        setState(() {
+          selectedestadoAbiertoocerrado = value;
+        });
+      },
+      contentPadding: EdgeInsets.zero,
+    ),
+    RadioListTile<String>(
+      title: const Text('Temporalmente cerrado'),
+      value: 'Temporalmente cerrado',
+      groupValue: selectedestadoAbiertoocerrado,
+      onChanged: (value) {
+        setState(() {
+          selectedestadoAbiertoocerrado = value;
+        });
+      },
+      contentPadding: EdgeInsets.zero,
+    ),
+ 
+  ],
+),  const Divider(color: Color(0xFF40A5DD), thickness: 2),
+
               const SizedBox(height: 25),
               CheckboxListTile(
                 title: const Text('Certificado de habilitación'),
@@ -609,6 +622,7 @@ class _PadronPageState extends State<PadronPage> {
                 controlAffinity: ListTileControlAffinity.leading,
                 contentPadding: EdgeInsets.zero,
               ),
+                const Divider(color: Color(0xFF40A5DD), thickness: 2),
               _buildTexto('Rubros Habilitados:', rubroshabilotadosController,
                   maxLines: 6),
               _buildTexto('Rubros Explotados:', rubrosexplotadosController,
@@ -648,111 +662,111 @@ class _PadronPageState extends State<PadronPage> {
     );
   }
 
-  Widget _buildDropdownLocalidad() {
-    bool esValido = camposValidos['localidad'] ?? true;
+Widget _buildDropdownLocalidad() {
+  bool esValido = camposValidos['localidad'] ?? true;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Localidad:',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: Colors.black,
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      const Text(
+        'Localidad:',
+        style: TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+          color: Colors.black,
+        ),
+      ),
+      const SizedBox(height: 5),
+      Container(
+        decoration: BoxDecoration(
+          border: Border.all(color: esValido ? Colors.grey : Colors.red, width: 1.5),
+          borderRadius: BorderRadius.circular(4.0),
+        ),
+        child: DropdownButton<String>(
+          hint: const Text('Selecciona una localidad'),
+          value: selectedLocalidad,
+          isExpanded: true,
+          padding: const EdgeInsets.symmetric(horizontal: 10.0),
+          dropdownColor: Colors.white,
+          items: localidades.map<DropdownMenuItem<String>>((localidad) {
+            return DropdownMenuItem<String>(
+              value: localidad['pklocalidad'].toString(),
+              child: Text(localidad['localidad'] ?? 'No disponible'),
+            );
+          }).toList(),
+          onChanged: (value) {
+            setState(() {
+              selectedLocalidad = value;
+              camposValidos['localidad'] = value != null && value.isNotEmpty;
+            });
+          },
+        ),
+      ),
+      if (!esValido)
+        const Padding(
+          padding: EdgeInsets.only(top: 5),
+          child: Text(
+            "*requerido",
+            style: TextStyle(color: Colors.red, fontSize: 12),
           ),
         ),
-        const SizedBox(height: 5),
-        Container(
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey, width: 1.0),
-            borderRadius: BorderRadius.circular(4.0),
-          ),
-          child: DropdownButton<String>(
-            hint: const Text('Selecciona una localidad'),
-            value: selectedLocalidad,
-            isExpanded: true,
-            padding: const EdgeInsets.symmetric(horizontal: 10.0),
-            dropdownColor: Colors.white,
-            items: localidades.map<DropdownMenuItem<String>>((localidad) {
-              return DropdownMenuItem<String>(
-                value: localidad['pklocalidad'].toString(),
-                child: Text(localidad['localidad'] ?? 'No disponible'),
-              );
-            }).toList(),
-            onChanged: (value) {
-              setState(() {
-                selectedLocalidad = value;
-                calles = [];
-                camposValidos['localidad'] = true;
-              });
-              _cargarCalles(value!);
-            },
-          ),
-        ),
-        if (!esValido)
-          const Padding(
-            padding: EdgeInsets.only(top: 5),
-            child: Text(
-              "*requerido",
-              style: TextStyle(color: Colors.red, fontSize: 12),
-            ),
-          ),
-      ],
-    );
-  }
+    ],
+  );
+}
 
-  Widget _buildDropdownCalle() {
-    bool esValido = camposValidos['calle'] ?? true;
+Widget _buildDropdownCalle() {
+  bool esValido = camposValidos['calle'] ?? true;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Calle:',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: Colors.black,
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      const Text(
+        'Calle:',
+        style: TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+          color: Colors.black,
+        ),
+      ),
+      const SizedBox(height: 5),
+      Container(
+        decoration: BoxDecoration(
+          border: Border.all(color: esValido ? Colors.grey : Colors.red, width: 1.5),
+          borderRadius: BorderRadius.circular(4.0),
+        ),
+        child: DropdownButton<String>(
+          hint: const Text('Selecciona una calle'),
+          value: selectedCalle,
+          isExpanded: true,
+          padding: const EdgeInsets.symmetric(horizontal: 10.0),
+          dropdownColor: Colors.white,
+          items: calles.map<DropdownMenuItem<String>>((calle) {
+            return DropdownMenuItem<String>(
+              value: calle['pkcalle'].toString(),
+              child: Text(calle['calle'] ?? 'No disponible'),
+            );
+          }).toList(),
+          onChanged: (value) {
+            setState(() {
+              selectedCalle = value;
+              camposValidos['calle'] = value != null && value.isNotEmpty;
+            });
+          },
+        ),
+      ),
+      if (!esValido)
+        const Padding(
+          padding: EdgeInsets.only(top: 5),
+          child: Text(
+            "*requerido",
+            style: TextStyle(color: Colors.red, fontSize: 12),
           ),
         ),
-        const SizedBox(height: 5),
-        Container(
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey, width: 1.0),
-            borderRadius: BorderRadius.circular(4.0),
-          ),
-          child: DropdownButton<String>(
-            hint: const Text('Selecciona una calle'),
-            value: selectedCalle,
-            isExpanded: true,
-            padding: const EdgeInsets.symmetric(horizontal: 10.0),
-            dropdownColor: Colors.white,
-            items: calles.map<DropdownMenuItem<String>>((calle) {
-              return DropdownMenuItem<String>(
-                value: calle['pkcalle'].toString(),
-                child: Text(calle['calle'] ?? 'No disponible'),
-              );
-            }).toList(),
-            onChanged: (value) {
-              setState(() {
-                selectedCalle = value;
-                camposValidos['calle'] = true;
-              });
-            },
-          ),
-        ),
-        if (!esValido)
-          const Padding(
-            padding: EdgeInsets.only(top: 5),
-            child: Text(
-              "*requerido",
-              style: TextStyle(color: Colors.red, fontSize: 12),
-            ),
-          ),
-      ],
-    );
-  }
+    ],
+  );
+}
+
+
 
   Widget _buildPadron(TextEditingController controller) {
     bool esValido = camposValidos['padron'] ?? true;
@@ -799,52 +813,58 @@ class _PadronPageState extends State<PadronPage> {
     );
   }
 
-  Widget _buildTexto(String label, TextEditingController controller,
-      {bool isNumeric = false, int maxLines = 1, bool showSearchIcon = false}) {
-    String campoKey = '';
+ Widget _buildTexto(String label, TextEditingController controller,
+    {bool isNumeric = false, int maxLines = 1, bool showSearchIcon = false}) {
+  String campoKey = '';
 
-    if (controller == cuitController) campoKey = 'cuit';
-    if (controller == titularController) campoKey = 'titular';
-    if (controller == nom_fantasiaController) campoKey = 'nom_fantasia';
-    if (controller == numeroController) campoKey = 'numero_calle';
-    if (controller == numeroLocalController) campoKey = 'numero_local';
-    if (controller == rubroshabilotadosController)
-      campoKey = 'rubros_habilitados';
-    if (controller == rubrosexplotadosController) campoKey = 'rubros_explota';
-    if (controller == publicidadController) campoKey = 'elementos_publicidad';
-    if (controller == observacionesController) campoKey = 'observaciones';
+  if (controller == cuitController) campoKey = 'cuit';
+  if (controller == titularController) campoKey = 'titular';
+  if (controller == nom_fantasiaController) campoKey = 'nom_fantasia';
+  if (controller == numeroController) campoKey = 'numero_calle';
+  if (controller == numeroLocalController) campoKey = 'numero_local';
+  if (controller == rubroshabilotadosController)
+    campoKey = 'rubros_habilitados';
+  if (controller == rubrosexplotadosController) campoKey = 'rubros_explota';
+  if (controller == publicidadController) campoKey = 'elementos_publicidad';
+  if (controller == observacionesController) campoKey = 'observaciones';
 
-    bool esValido = camposValidos[campoKey] ?? true;
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: Colors.black,
-          ),
+  bool esValido = camposValidos[campoKey] ?? true;
+
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 8.0),
+    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Text(
+        label,
+        style: const TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+          color: Colors.black,
         ),
-        const SizedBox(height: 5),
-        TextField(
-          controller: controller,
-          keyboardType:
-              isNumeric ? TextInputType.number : TextInputType.multiline,
-          maxLines: maxLines,
-          decoration: InputDecoration(
-            errorText: !esValido ? "*requerido" : null,
-            errorStyle: const TextStyle(color: Colors.red),
-            enabledBorder: OutlineInputBorder(
-              borderSide: BorderSide(
-                color:
-                    esValido ? Color.fromARGB(255, 128, 122, 122) : Colors.red,
-                width: 1.5,
-              ),
+      ),
+      const SizedBox(height: 5),
+      TextField(
+        controller: controller,
+        keyboardType:
+            isNumeric ? TextInputType.number : TextInputType.multiline,
+        maxLines: maxLines,
+        decoration: InputDecoration(
+          errorText: !esValido ? "*requerido" : null,
+          errorStyle: const TextStyle(color: Colors.red),
+          enabledBorder: OutlineInputBorder(
+            borderSide: BorderSide(
+              color: esValido ? Colors.grey : Colors.red, // Rojo si no es válido
+              width: 1.5,
+            ),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(
+              color: esValido ? Colors.blue : Colors.red, // Rojo si no es válido
+              width: 2.0,
             ),
           ),
         ),
-      ]),
-    );
-  }
+      ),
+    ]),
+  );
+}
 }
