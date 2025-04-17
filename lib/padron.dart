@@ -112,39 +112,35 @@ class _PadronPageState extends State<PadronPage> {
     });
   }
 
-  bool _validarFormulario() {
+bool _validarFormulario() {
   bool formularioValido = true;
+  Map<String, bool> validaciones = {};
 
-  Map<String, bool> validaciones = Map.from(camposValidos);
-
+  
   validaciones['nropadro'] = padronController.text.isNotEmpty;
   validaciones['cuit'] = cuitController.text.isNotEmpty;
   validaciones['titular'] = titularController.text.isNotEmpty;
   validaciones['nom_fantasia'] = nom_fantasiaController.text.isNotEmpty;
-
-  validaciones['localidad'] = selectedLocalidad != null && selectedLocalidad!.isNotEmpty;
-  validaciones['calle'] = selectedCalle != null && selectedCalle!.isNotEmpty;
   validaciones['numero_calle'] = numeroController.text.isNotEmpty;
   validaciones['numero_local'] = numeroLocalController.text.isNotEmpty;
-  validaciones['estado'] = selectedestadoAbiertoocerrado != null;
-  validaciones['certificado_habilitacion'] = selectedestadoAbiertoocerrado != null;
-  validaciones['comprobantes_pago'] = selectedestadoAbiertoocerrado != null;
-  validaciones['servicio_delivery'] = selectedestadoAbiertoocerrado != null;
-
   validaciones['rubros_habilitados'] = rubroshabilotadosController.text.isNotEmpty;
   validaciones['rubros_explota'] = rubrosexplotadosController.text.isNotEmpty;
-  validaciones['elementos_publicidad'] = publicidadController.text.isNotEmpty;  
+  validaciones['elementos_publicidad'] = publicidadController.text.isNotEmpty;
   validaciones['observaciones'] = observacionesController.text.isNotEmpty;
 
 
-  if (validaciones.containsValue(false)) {
-    formularioValido = false;
-    _mostrarMensajeGuardado('Por favor, complete todos los campos obligatorios.');
-  }
+  validaciones['localidad'] = selectedLocalidad != null && selectedLocalidad!.isNotEmpty;
+  validaciones['calle'] = selectedCalle != null && selectedCalle!.isNotEmpty;
+
 
   setState(() {
     camposValidos = validaciones;
   });
+
+  formularioValido = !validaciones.containsValue(false);
+  if (!formularioValido) {
+    _mostrarMensajeGuardado('Por favor, complete todos los campos obligatorios.');
+  }
 
   return formularioValido;
 }
@@ -813,7 +809,7 @@ Widget _buildDropdownCalle() {
     );
   }
 
- Widget _buildTexto(String label, TextEditingController controller,
+Widget _buildTexto(String label, TextEditingController controller,
     {bool isNumeric = false, int maxLines = 1, bool showSearchIcon = false}) {
   String campoKey = '';
 
@@ -822,8 +818,7 @@ Widget _buildDropdownCalle() {
   if (controller == nom_fantasiaController) campoKey = 'nom_fantasia';
   if (controller == numeroController) campoKey = 'numero_calle';
   if (controller == numeroLocalController) campoKey = 'numero_local';
-  if (controller == rubroshabilotadosController)
-    campoKey = 'rubros_habilitados';
+  if (controller == rubroshabilotadosController) campoKey = 'rubros_habilitados';
   if (controller == rubrosexplotadosController) campoKey = 'rubros_explota';
   if (controller == publicidadController) campoKey = 'elementos_publicidad';
   if (controller == observacionesController) campoKey = 'observaciones';
@@ -844,8 +839,7 @@ Widget _buildDropdownCalle() {
       const SizedBox(height: 5),
       TextField(
         controller: controller,
-        keyboardType:
-            isNumeric ? TextInputType.number : TextInputType.multiline,
+        keyboardType: isNumeric ? TextInputType.number : TextInputType.multiline,
         maxLines: maxLines,
         decoration: InputDecoration(
           errorText: !esValido ? "*requerido" : null,
@@ -867,4 +861,5 @@ Widget _buildDropdownCalle() {
     ]),
   );
 }
+
 }
