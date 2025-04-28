@@ -104,9 +104,10 @@ class _PadronPageState extends State<PadronPage> {
     setState(() {});
   }
 
-  Future<void> _cargarCalles(String localidad) async {
-    calles = await traerCalle(localidad);
+  Future<void> _cargarCalles(String fklocalidad) async {
+    final nuevasCalles = await traerCalle(fklocalidad);
     setState(() {
+      calles = nuevasCalles;
       selectedCalle = null;
     });
   }
@@ -714,11 +715,22 @@ class _PadronPageState extends State<PadronPage> {
                 child: Text(localidad['localidad'] ?? 'No disponible'),
               );
             }).toList(),
-            onChanged: (value) {
-              setState(() {
-                selectedLocalidad = value;
-                camposValidos['localidad'] = value != null && value.isNotEmpty;
-              });
+            onChanged: (value) async {
+              if (value != null && value.isNotEmpty) {
+                setState(() {
+                  selectedLocalidad = value;
+                  camposValidos['localidad'] = true;
+                });
+
+                await _cargarCalles(value);
+              } else {
+                setState(() {
+                  selectedLocalidad = null;
+                  calles = [];
+                  selectedCalle = null;
+                  camposValidos['localidad'] = false;
+                });
+              }
             },
           ),
         ),
@@ -744,7 +756,9 @@ class _PadronPageState extends State<PadronPage> {
         Container(
           decoration: BoxDecoration(
             border: Border.all(
-                color: esValido ? Colors.grey : Colors.red, width: 1.5),
+              color: esValido ? Colors.grey : Colors.red,
+              width: 1.5,
+            ),
             borderRadius: BorderRadius.circular(4.0),
           ),
           child: DropdownButton<String>(
@@ -753,12 +767,14 @@ class _PadronPageState extends State<PadronPage> {
             isExpanded: true,
             padding: const EdgeInsets.symmetric(horizontal: 10.0),
             dropdownColor: Colors.white,
-            items: calles.map<DropdownMenuItem<String>>((calle) {
-              return DropdownMenuItem<String>(
-                value: calle['pkcalle'].toString(),
-                child: Text(calle['calle'] ?? 'No disponible'),
-              );
-            }).toList(),
+            items: calles.isNotEmpty
+                ? calles.map<DropdownMenuItem<String>>((calle) {
+                    return DropdownMenuItem<String>(
+                      value: calle['pkcalle'].toString(),
+                      child: Text(calle['calle'] ?? 'No disponible'),
+                    );
+                  }).toList()
+                : [],
             onChanged: (value) {
               setState(() {
                 selectedCalle = value;
