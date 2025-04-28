@@ -740,6 +740,21 @@ class _PadronPageState extends State<PadronPage> {
 
   Widget _buildDropdownCalle() {
     bool esValido = camposValidos['calle'] ?? true;
+    TextEditingController searchController = TextEditingController();
+
+    // Lista filtrada de calles según la búsqueda
+    List<Map<String, dynamic>> filteredCalles = List.from(calles);
+
+    // Función para actualizar la lista filtrada
+    void _filterCalles(String query) {
+      setState(() {
+        filteredCalles = calles
+            .where((calle) =>
+                calle['calle']?.toLowerCase().contains(query.toLowerCase()) ??
+                false)
+            .toList();
+      });
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -761,26 +776,50 @@ class _PadronPageState extends State<PadronPage> {
             ),
             borderRadius: BorderRadius.circular(4.0),
           ),
-          child: DropdownButton<String>(
-            hint: const Text('Selecciona una calle'),
-            value: selectedCalle,
-            isExpanded: true,
-            padding: const EdgeInsets.symmetric(horizontal: 10.0),
-            dropdownColor: Colors.white,
-            items: calles.isNotEmpty
-                ? calles.map<DropdownMenuItem<String>>((calle) {
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              hint: const Text('Selecciona una calle'),
+              value: selectedCalle,
+              isExpanded: true,
+              padding: const EdgeInsets.symmetric(horizontal: 10.0),
+              dropdownColor: Colors.white,
+              items: [
+                // Primero agregamos el campo de búsqueda
+                DropdownMenuItem<String>(
+                  enabled: false,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 10.0),
+                    child: TextField(
+                      controller: searchController,
+                      decoration: const InputDecoration(
+                        hintText: 'Buscar calle...',
+                        border: InputBorder.none,
+                      ),
+                      onChanged: (value) => _filterCalles(value),
+                    ),
+                  ),
+                ),
+                // Luego agregamos las opciones filtradas
+                if (filteredCalles.isEmpty)
+                  const DropdownMenuItem<String>(
+                    enabled: false,
+                    child: Text("No hay calles disponibles"),
+                  )
+                else
+                  ...filteredCalles.map<DropdownMenuItem<String>>((calle) {
                     return DropdownMenuItem<String>(
                       value: calle['pkcalle'].toString(),
                       child: Text(calle['calle'] ?? 'No disponible'),
                     );
-                  }).toList()
-                : [],
-            onChanged: (value) {
-              setState(() {
-                selectedCalle = value;
-                camposValidos['calle'] = value != null && value.isNotEmpty;
-              });
-            },
+                  }).toList(),
+              ],
+              onChanged: (value) {
+                setState(() {
+                  selectedCalle = value;
+                  camposValidos['calle'] = value != null && value.isNotEmpty;
+                });
+              },
+            ),
           ),
         ),
       ],
@@ -892,8 +931,7 @@ class _PadronPageState extends State<PadronPage> {
             ),
             focusedBorder: OutlineInputBorder(
               borderSide: BorderSide(
-                color:
-                    esValido ? Colors.blue : Colors.red, // Rojo si no es válido
+                color: esValido ? Colors.blue : Colors.red,
                 width: 2.0,
               ),
             ),
