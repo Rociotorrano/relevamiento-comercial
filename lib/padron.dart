@@ -51,9 +51,18 @@ class _PadronPageState extends State<PadronPage> {
   bool _comprobantesSegHigiene = false;
   bool _servicioDelivery = false;
 
+  bool _dropdownCalleOpen = false;
+  bool _isSearchingCalle = false;
+  TextEditingController _searchCalleController = TextEditingController();
+  FocusNode _searchCalleFocus = FocusNode();
+  List<Map<String, dynamic>> _callesFiltradas = [];
+
+  Map<String, bool> camposValidos = {};
+
   List<Map<String, dynamic>> localidades = [];
   List<Map<String, dynamic>> calles = [];
   final List<File> _foto = [];
+  List<Map<String, dynamic>> filtrarCalles = [];
 
   final TextEditingController padronController = TextEditingController();
   final TextEditingController cuitController = TextEditingController();
@@ -73,24 +82,24 @@ class _PadronPageState extends State<PadronPage> {
   bool titularValido = false;
   bool nom_fantasiaValido = false;
 
-  Map<String, bool> camposValidos = {
-    'nropadro': true,
-    'cuit': true,
-    'titular': true,
-    'nombrefantasia': true,
-    'localidad': true,
-    'calle': true,
-    'numero_calle': true,
-    'numero_local': true,
-    'estado': true,
-    'certificado_habilitacion': true,
-    'comprobantes_pago': true,
-    'servicio_delivery': true,
-    'rubros_habilitados': true,
-    'rubros_explota': true,
-    'elementos_publicidad': true,
-    'observaciones': true,
-  };
+  // Map<String, bool> camposValidos = {
+  //   'nropadro': true,
+  //   'cuit': true,
+  //   'titular': true,
+  //   'nombrefantasia': true,
+  //   'localidad': true,
+  //   'calle': true,
+  //   'numero_calle': true,
+  //   'numero_local': true,
+  //   'estado': true,
+  //   'certificado_habilitacion': true,
+  //   'comprobantes_pago': true,
+  //   'servicio_delivery': true,
+  //   'rubros_habilitados': true,
+  //   'rubros_explota': true,
+  //   'elementos_publicidad': true,
+  //   'observaciones': true,
+  // };
 
   @override
   void initState() {
@@ -740,21 +749,11 @@ class _PadronPageState extends State<PadronPage> {
 
   Widget _buildDropdownCalle() {
     bool esValido = camposValidos['calle'] ?? true;
-    TextEditingController searchController = TextEditingController();
-
-    // Lista filtrada de calles según la búsqueda
-    List<Map<String, dynamic>> filteredCalles = List.from(calles);
-
-    // Función para actualizar la lista filtrada
-    void _filterCalles(String query) {
-      setState(() {
-        filteredCalles = calles
-            .where((calle) =>
-                calle['calle']?.toLowerCase().contains(query.toLowerCase()) ??
-                false)
-            .toList();
-      });
-    }
+    String displayText = selectedCalle != null
+        ? (calles.firstWhere((c) => c['pkcalle'].toString() == selectedCalle,
+                orElse: () => {'calle': ''})['calle'] ??
+            '')
+        : '';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -770,58 +769,118 @@ class _PadronPageState extends State<PadronPage> {
         const SizedBox(height: 5),
         Container(
           decoration: BoxDecoration(
-            border: Border.all(
-              color: esValido ? Colors.grey : Colors.red,
-              width: 1.5,
-            ),
-            borderRadius: BorderRadius.circular(4.0),
+            border: Border.all(color: esValido ? Colors.grey : Colors.red),
+            borderRadius: BorderRadius.circular(4),
           ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              hint: const Text('Selecciona una calle'),
-              value: selectedCalle,
-              isExpanded: true,
-              padding: const EdgeInsets.symmetric(horizontal: 10.0),
-              dropdownColor: Colors.white,
-              items: [
-                // Primero agregamos el campo de búsqueda
-                DropdownMenuItem<String>(
-                  enabled: false,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 10.0),
-                    child: TextField(
-                      controller: searchController,
-                      decoration: const InputDecoration(
-                        hintText: 'Buscar calle...',
-                        border: InputBorder.none,
+          child: Column(
+            children: [
+              InkWell(
+                onTap: () {
+                  setState(() {
+                    _dropdownCalleOpen = !_dropdownCalleOpen;
+                    if (_dropdownCalleOpen) {
+                      _callesFiltradas = List.from(calles);
+                      _searchCalleController.clear();
+                      FocusScope.of(context).requestFocus(_searchCalleFocus);
+                    }
+                  });
+                },
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: _dropdownCalleOpen
+                            ? TextField(
+                                focusNode: _searchCalleFocus,
+                                controller: _searchCalleController,
+                                decoration: const InputDecoration(
+                                  hintText: 'Buscar calle...',
+                                  isDense: true,
+                                  border: InputBorder.none,
+                                ),
+                                onChanged: (value) {
+                                  setState(() {
+                                    if (value.isEmpty) {
+                                      _callesFiltradas = calles;
+                                    } else {
+                                      _callesFiltradas = calles
+                                          .where((calle) => calle['calle']
+                                              .toLowerCase()
+                                              .contains(value.toLowerCase()))
+                                          .toList();
+                                    }
+                                  });
+                                },
+                              )
+                            : Text(
+                                displayText.isEmpty
+                                    ? 'Seleccione una calle'
+                                    : displayText,
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  color: displayText.isEmpty
+                                      ? Colors.grey
+                                      : Colors.black,
+                                ),
+                              ),
                       ),
-                      onChanged: (value) => _filterCalles(value),
-                    ),
+                      if (selectedCalle != null && !_dropdownCalleOpen)
+                        IconButton(
+                          icon: const Icon(Icons.clear, color: Colors.red),
+                          onPressed: () {
+                            setState(() {
+                              selectedCalle = null;
+                              camposValidos['calle'] = false;
+                            });
+                          },
+                          tooltip: 'Borrar selección',
+                        ),
+                    ],
                   ),
                 ),
-                // Luego agregamos las opciones filtradas
-                if (filteredCalles.isEmpty)
-                  const DropdownMenuItem<String>(
-                    enabled: false,
-                    child: Text("No hay calles disponibles"),
-                  )
-                else
-                  ...filteredCalles.map<DropdownMenuItem<String>>((calle) {
-                    return DropdownMenuItem<String>(
-                      value: calle['pkcalle'].toString(),
-                      child: Text(calle['calle'] ?? 'No disponible'),
-                    );
-                  }).toList(),
-              ],
-              onChanged: (value) {
-                setState(() {
-                  selectedCalle = value;
-                  camposValidos['calle'] = value != null && value.isNotEmpty;
-                });
-              },
-            ),
+              ),
+              if (_dropdownCalleOpen)
+                Container(
+                  decoration: const BoxDecoration(
+                    border: Border(top: BorderSide(color: Colors.black)),
+                  ),
+                  constraints: const BoxConstraints(maxHeight: 250),
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: _callesFiltradas.length,
+                    itemBuilder: (context, index) {
+                      final calle = _callesFiltradas[index];
+                      return ListTile(
+                        title: Text(
+                          calle['calle'] ?? 'No disponible',
+                          style: const TextStyle(fontSize: 16),
+                        ),
+                        onTap: () {
+                          setState(() {
+                            selectedCalle = calle['pkcalle'].toString();
+                            camposValidos['calle'] = true;
+                            _dropdownCalleOpen = false;
+                            _searchCalleController.clear();
+                          });
+                        },
+                      );
+                    },
+                  ),
+                ),
+            ],
           ),
         ),
+        if (!esValido && calles.isNotEmpty)
+          const Padding(
+            padding: EdgeInsets.only(top: 5),
+            child: Text(
+              "*Debe seleccionar una calle",
+              style: TextStyle(color: Colors.red, fontSize: 12),
+            ),
+          ),
       ],
     );
   }
