@@ -402,6 +402,7 @@ class _PadronPageState extends State<PadronPage> {
   Future<void> guardarTodo() async {
     final uri = Uri.parse(
         'https://backend.sim.lacosta.gob.ar/recursos/guardarDatosFicha');
+
     final request = http.MultipartRequest('POST', uri);
     final hasPermission = await handleLocationPermission(context);
     if (!hasPermission) {
@@ -421,8 +422,8 @@ class _PadronPageState extends State<PadronPage> {
     request.fields['cuit'] = cuitController.text.trim();
     request.fields['titular'] = titularController.text.trim();
     request.fields['nom_fantasia'] = nom_fantasiaController.text.trim();
-    request.fields['localidad'] = selectedLocalidad!;
-    request.fields['calle'] = selectedCalle!;
+    request.fields['fklocalidad'] = selectedLocalidad!;
+    request.fields['fkcalle'] = selectedCalle!;
     request.fields['numero_calle'] = numeroController.text.trim();
     request.fields['numero_local'] = numeroLocalController.text.trim();
     request.fields['estado'] =
@@ -436,8 +437,9 @@ class _PadronPageState extends State<PadronPage> {
     request.fields['rubros_explota'] = rubrosexplotadosController.text.trim();
     request.fields['elementos_publicidad'] = publicidadController.text.trim();
     request.fields['observaciones'] = observacionesController.text.trim();
-    request.fields['latitud'] = position.latitude.toString();
     request.fields['longitud'] = position.longitude.toString();
+    request.fields['latitud'] = position.latitude.toString();
+
     //PASAR AL BACKEND LA FOTO COMO ARCHIVO
     for (int i = 0; i < _foto.length; i++) {
       var archivo = _foto[i];
@@ -453,9 +455,10 @@ class _PadronPageState extends State<PadronPage> {
         request.files.add(multipartFile);
       }
     }
-
     try {
       final response = await request.send();
+      final responseBody = await response.stream.bytesToString();
+      print('Respuesta del backend: $responseBody');
 
       print("Status: ${response.statusCode}");
 
