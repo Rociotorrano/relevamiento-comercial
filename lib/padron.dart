@@ -2,11 +2,13 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:relevamientocomercial/servicios/globals.dart' as globals;
 import 'package:relevamientocomercial/servicios/guardar.dart';
+import 'package:relevamientocomercial/servicios/ubicacion.dart';
 
 void main() => runApp(const PadronApp());
 
@@ -81,25 +83,6 @@ class _PadronPageState extends State<PadronPage> {
   bool cuitValido = false;
   bool titularValido = false;
   bool nom_fantasiaValido = false;
-
-  // Map<String, bool> camposValidos = {
-  //   'nropadro': true,
-  //   'cuit': true,
-  //   'titular': true,
-  //   'nombrefantasia': true,
-  //   'localidad': true,
-  //   'calle': true,
-  //   'numero_calle': true,
-  //   'numero_local': true,
-  //   'estado': true,
-  //   'certificado_habilitacion': true,
-  //   'comprobantes_pago': true,
-  //   'servicio_delivery': true,
-  //   'rubros_habilitados': true,
-  //   'rubros_explota': true,
-  //   'elementos_publicidad': true,
-  //   'observaciones': true,
-  // };
 
   @override
   void initState() {
@@ -420,6 +403,17 @@ class _PadronPageState extends State<PadronPage> {
     final uri = Uri.parse(
         'https://backend.sim.lacosta.gob.ar/recursos/guardarDatosFicha');
     final request = http.MultipartRequest('POST', uri);
+    final hasPermission = await handleLocationPermission(context);
+    if (!hasPermission) {
+      dialogAceptar(context, "No hay acceso a la ubicación.", 0);
+      return;
+    }
+
+    Position? position = await getCurrentPosition();
+    if (position == null) {
+      dialogAceptar(context, "No se pudo obtener la ubicación GPS.", 0);
+      return;
+    }
 
     request.headers['Authorization'] = 'Bearer ${globals.miTokenGlobal}';
 
@@ -442,7 +436,8 @@ class _PadronPageState extends State<PadronPage> {
     request.fields['rubros_explota'] = rubrosexplotadosController.text.trim();
     request.fields['elementos_publicidad'] = publicidadController.text.trim();
     request.fields['observaciones'] = observacionesController.text.trim();
-
+    request.fields['latitud'] = position.latitude.toString();
+    request.fields['longitud'] = position.longitude.toString();
     //PASAR AL BACKEND LA FOTO COMO ARCHIVO
     for (int i = 0; i < _foto.length; i++) {
       var archivo = _foto[i];
