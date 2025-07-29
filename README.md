@@ -62,7 +62,7 @@ Esta es la pantalla central donde se realiza el relevamiento de un comercio:
 [PadronApp (Formulario Principal)]
    |--Input--> Nro. Padrón
    |--onPress Buscar (icono lupa)--> Llama API: traerDatosPadronFicha (POST)
-        |--Success (200 & datos encontrados)--> Autocompleta CUIT, Titular, Nombre Fantasía
+        |--> Autocompleta CUIT, Titular, Nombre Fantasía
         |--Fail (no datos / error)--> Muestra SnackBar "No se encontró información"
 
    |--Input--> Selección Localidad (Dropdown)
