@@ -2,20 +2,27 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:relevamientocomercial/main.dart';
-import 'package:relevamientocomercial/padron.dart';
-import 'package:relevamientocomercial/servicios/globals.dart' as globals;
-import 'package:relevamientocomercial/servicios/ubicacion.dart';
+import 'package:relevamiento_comercial/main.dart';
+import 'package:relevamiento_comercial/padron.dart';
+import 'package:relevamiento_comercial/servicios/globals.dart' as globals;
+import 'package:relevamiento_comercial/servicios/ubicacion.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 Future<List<LoginApp>?> login(
-    BuildContext context, String usuario, String password, int pasar) async {
+  BuildContext context,
+  String usuario,
+  String password,
+  int pasar,
+) async {
   var url = Uri.parse('https://backend.sim.lacosta.gob.ar/loguear');
 
   final hasPermission = await handleLocationPermission(context);
   if (!hasPermission) {
-    dialogAceptar(context,
-        "No hay acceso a la ubicación. Por favor, habilite los servicios", 0);
+    dialogAceptar(
+      context,
+      "No hay acceso a la ubicación. Por favor, habilite los servicios",
+      0,
+    );
 
     return null;
   }
@@ -75,15 +82,20 @@ Future<void> limpiarPreferencias(BuildContext context) async {
 
 //? ACEPTAR DE MENSAJE
 Future<void> _mostrarMensajeGuardar(
-    BuildContext context, String mensaje, int siguiente) async {
+  BuildContext context,
+  String mensaje,
+  int siguiente,
+) async {
   BuildContext? validContext = context;
   showDialog(
     context: validContext,
     builder: (BuildContext context) {
       return AlertDialog(
         backgroundColor: Colors.white,
-        title: const Text('Guardado con Éxito',
-            style: TextStyle(color: Colors.black)),
+        title: const Text(
+          'Guardado con Éxito',
+          style: TextStyle(color: Colors.black),
+        ),
         content: Text(mensaje, style: TextStyle(color: Colors.black)),
         actions: [
           TextButton(
@@ -100,8 +112,10 @@ Future<void> _mostrarMensajeGuardar(
                 Navigator.of(context).pop();
               }
             },
-            child: const Text('Aceptar',
-                style: TextStyle(color: Colors.black)), // Cambio para el botón
+            child: const Text(
+              'Aceptar',
+              style: TextStyle(color: Colors.black),
+            ), // Cambio para el botón
           ),
         ],
       );
@@ -111,7 +125,10 @@ Future<void> _mostrarMensajeGuardar(
 
 //? ACEPTAR
 Future<void> dialogAceptar(
-    BuildContext context, String texto, int pasar) async {
+  BuildContext context,
+  String texto,
+  int pasar,
+) async {
   BuildContext? validContext = context;
   showDialog(
     context: validContext,
@@ -144,8 +161,9 @@ Future<void> dialogAceptar(
 
 //? TRAER LOCALIDADES
 Future<List<Map<String, dynamic>>> traerLocalidad(localidades) async {
-  var url =
-      Uri.parse('https://backend.sim.lacosta.gob.ar/generales/localidades');
+  var url = Uri.parse(
+    'https://backend.sim.lacosta.gob.ar/generales/localidades',
+  );
 
   try {
     final response = await http.post(

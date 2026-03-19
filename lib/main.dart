@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:relevamientocomercial/servicios/guardar.dart';
+import 'package:relevamiento_comercial/servicios/guardar.dart';
 
 void main() {
   runApp(
     MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => LoginData()),
-      ],
+      providers: [ChangeNotifierProvider(create: (_) => LoginData())],
       child: const LoginApp(),
     ),
   );
@@ -24,8 +22,9 @@ class LoginApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
           primaryColor: const Color(0xFF40A5DD),
-          colorScheme: ColorScheme.fromSwatch()
-              .copyWith(secondary: const Color(0xFF40A5DD)),
+          colorScheme: ColorScheme.fromSwatch().copyWith(
+            secondary: const Color(0xFF40A5DD),
+          ),
         ),
         home: const LoginPage(),
       ),
@@ -102,7 +101,7 @@ class _LoginPageState extends State<LoginPage> {
     final size = MediaQuery.of(context).size;
     print('${size.height} ${size.width}');
     return Scaffold(
-      backgroundColor: const Color(0xFF40A5DD),
+      backgroundColor: Colors.white,
       appBar: null,
       body: Stack(
         children: [
@@ -115,7 +114,7 @@ class _LoginPageState extends State<LoginPage> {
                   margin: const EdgeInsets.only(top: 60.0),
                   height: MediaQuery.of(context).size.height * 0.20,
                   child: Image.asset(
-                    'assets/images/LOGO_MUNI_2024_BLANCO.jpg',
+                    'assets/LOGO_MUNI_2024_COLOR.jpg',
                     fit: BoxFit.contain,
                   ),
                 ),
@@ -125,9 +124,13 @@ class _LoginPageState extends State<LoginPage> {
                     'Relevamiento',
                     style: size.width >= 150
                         ? texto.headlineLarge!.copyWith(
-                            color: Colors.white, fontWeight: FontWeight.bold)
+                            color: const Color(0xFF40A5DD),
+                            fontWeight: FontWeight.bold,
+                          )
                         : texto.headlineSmall!.copyWith(
-                            color: Colors.white, fontWeight: FontWeight.bold),
+                            color: const Color(0xFF40A5DD),
+                            fontWeight: FontWeight.bold,
+                          ),
                   ),
                 const SizedBox(height: 15.0),
                 if (!keyboardIsOpen)
@@ -135,9 +138,13 @@ class _LoginPageState extends State<LoginPage> {
                     'Comercial',
                     style: size.width >= 150
                         ? texto.headlineLarge!.copyWith(
-                            color: Colors.white, fontWeight: FontWeight.bold)
+                            color: const Color(0xFF40A5DD),
+                            fontWeight: FontWeight.bold,
+                          )
                         : texto.headlineSmall!.copyWith(
-                            color: Colors.white, fontWeight: FontWeight.bold),
+                            color: const Color(0xFF40A5DD),
+                            fontWeight: FontWeight.bold,
+                          ),
                   ),
               ],
             ),
@@ -153,6 +160,10 @@ class _LoginPageState extends State<LoginPage> {
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(50),
+                      border: Border.all(
+                        color: const Color(0xFF40A5DD),
+                        width: 2.0,
+                      ),
                     ),
                     padding: const EdgeInsets.symmetric(horizontal: 12),
                     height: 45,
@@ -180,6 +191,10 @@ class _LoginPageState extends State<LoginPage> {
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(50),
+                      border: Border.all(
+                        color: const Color(0xFF40A5DD),
+                        width: 2.0,
+                      ),
                     ),
                     padding: const EdgeInsets.symmetric(horizontal: 12),
                     height: 45,

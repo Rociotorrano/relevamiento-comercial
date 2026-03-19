@@ -1,6 +1,6 @@
 {
-    "name": "relevamientocomercial",
-    "short_name": "relevamientocomercial",
+    "name": "relevamiento_comercial",
+    "short_name": "relevamiento_comercial",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

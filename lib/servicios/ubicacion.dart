@@ -16,14 +16,19 @@ Future<bool> handleLocationPermission(BuildContext context) async {
     permission = await Geolocator.requestPermission();
     if (permission == LocationPermission.denied) {
       ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Se niegan los permisos de ubicación')));
+        const SnackBar(content: Text('Se niegan los permisos de ubicación')),
+      );
       return false;
     }
   }
   if (permission == LocationPermission.deniedForever) {
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
         content: Text(
-            'Los permisos de ubicación se niegan permanentemente, no podemos solicitar permisos.')));
+          'Los permisos de ubicación se niegan permanentemente, no podemos solicitar permisos.',
+        ),
+      ),
+    );
     return false;
   }
   return true;
@@ -31,11 +36,13 @@ Future<bool> handleLocationPermission(BuildContext context) async {
 
 Future<Position> getCurrentPosition() async {
   return await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.high)
+        desiredAccuracy: LocationAccuracy.high,
+      )
       .then((Position position) {
-    return position;
-    // ignore: body_might_complete_normally_catch_error
-  }).catchError((e) {
-    debugPrint(e);
-  });
+        return position;
+        // ignore: body_might_complete_normally_catch_error
+      })
+      .catchError((e) {
+        debugPrint(e);
+      });
 }
