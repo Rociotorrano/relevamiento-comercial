@@ -375,13 +375,24 @@ class _PadronPageState extends State<PadronPage> {
                 ? 'abierto'
                 : 'Temporalmente cerrado';
 
-            _certificadoHabilitacion =
-                (map['certificado_habilitacion']?.toString() == '1');
+            final _certVal = map['certificado_habilitacion']?.toString().toUpperCase().trim() ?? '';
+            final _compVal = map['comprobantes_pago']?.toString().toUpperCase().trim() ?? '';
+            final _delivVal = map['servicio_delivery']?.toString().toUpperCase().trim() ?? '';
 
-            _comprobantesSegHigiene =
-                (map['comprobantes_pago']?.toString() == '1');
+            // DEBUG: ver qué devuelve el backend exactamente
+            print('=== CHECKBOXES DEBUG ===');
+            print('certificado_habilitacion raw: ${map['certificado_habilitacion']} => procesado: $_certVal');
+            print('comprobantes_pago raw: ${map['comprobantes_pago']} => procesado: $_compVal');
+            print('servicio_delivery raw: ${map['servicio_delivery']} => procesado: $_delivVal');
 
-            _servicioDelivery = (map['servicio_delivery']?.toString() == '1');
+            _certificadoHabilitacion = (_certVal == '1' || _certVal == 'SI' || _certVal == 'S' || _certVal == 'TRUE');
+            _comprobantesSegHigiene = (_compVal == '1' || _compVal == 'SI' || _compVal == 'S' || _compVal == 'TRUE');
+            _servicioDelivery = (_delivVal == '1' || _delivVal == 'SI' || _delivVal == 'S' || _delivVal == 'TRUE');
+
+            print('_certificadoHabilitacion: $_certificadoHabilitacion');
+            print('_comprobantesSegHigiene: $_comprobantesSegHigiene');
+            print('_servicioDelivery: $_servicioDelivery');
+            print('========================');
 
             _padronBuscado = true;
             _padronExistente = existsInRelevamiento;
@@ -552,15 +563,13 @@ class _PadronPageState extends State<PadronPage> {
     final request = http.MultipartRequest('POST', uri);
     final hasPermission = await handleLocationPermission(context);
     if (!hasPermission) {
+      if (!mounted) return;
       dialogAceptar(context, "No hay acceso a la ubicación.", 0);
       return;
     }
 
     Position? position = await getCurrentPosition();
-    if (position == null) {
-      dialogAceptar(context, "No se pudo obtener la ubicación GPS.", 0);
-      return;
-    }
+    if (!mounted) return;
 
     request.headers['Authorization'] = 'Bearer ${globals.miTokenGlobal}';
 
@@ -617,7 +626,7 @@ class _PadronPageState extends State<PadronPage> {
             return AlertDialog(
               backgroundColor: Colors.white,
               title: const Text(
-                'Datos guardados correctamente',
+                'Información guardada correctamente',
                 style: TextStyle(fontSize: 16, color: Colors.black),
               ),
               actions: [
@@ -625,7 +634,7 @@ class _PadronPageState extends State<PadronPage> {
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
-                  child: const Text('OK'),
+                  child: const Text('Aceptar'),
                 ),
               ],
             );
